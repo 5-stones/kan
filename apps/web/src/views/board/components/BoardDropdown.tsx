@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import { t } from "@lingui/core/macro";
 import {
+  HiArrowRightOnRectangle,
   HiEllipsisHorizontal,
   HiLink,
   HiOutlineDocumentDuplicate,
@@ -88,7 +89,7 @@ export default function BoardDropdown({
   const isArchiveActionPending = updateBoard.isPending;
 
   const items = [
-    ...(isTemplate && canCreateBoard
+    ...(!isTemplate && canCreateBoard
       ? [
         {
           label: t`Make template`,
@@ -115,6 +116,17 @@ export default function BoardDropdown({
           action: handleArchiveOrUnarchive,
           icon: (
             <IoArchiveOutline className="h-[16px] w-[16px] text-dark-900" />
+          ),
+        },
+      ]
+      : []),
+    ...(!isTemplate && canEditBoard
+      ? [
+        {
+          label: t`Move to workspace`,
+          action: () => openModal("MOVE_BOARD"),
+          icon: (
+            <HiArrowRightOnRectangle className="h-[16px] w-[16px] text-dark-900" />
           ),
         },
       ]
