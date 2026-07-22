@@ -302,6 +302,8 @@ export const boardRouter = createTRPCRouter({
         labels: z.array(z.string().min(1)),
         type: z.enum(["regular", "template"]).optional(),
         sourceBoardPublicId: z.string().min(12).optional(),
+        themeId: z.string().optional(),
+        themeOverrides: z.any().optional(),
       }),
     )
     .output(boardCreateResponseSchema)
@@ -391,6 +393,8 @@ export const boardRouter = createTRPCRouter({
           name: input.name,
           type: input.type ?? "regular",
           sourceBoardId: sourceBoardInfo.id,
+          themeId: input.themeId,
+          themeOverrides: input.themeOverrides,
         });
 
         return result;
@@ -414,6 +418,8 @@ export const boardRouter = createTRPCRouter({
         createdBy: userId,
         workspaceId: workspace.id,
         type: input.type,
+        themeId: input.themeId,
+        themeOverrides: input.themeOverrides,
       });
 
       if (!result)
@@ -472,6 +478,8 @@ export const boardRouter = createTRPCRouter({
         visibility: z.enum(["public", "private"]).optional(),
         favorite: z.boolean().optional(),
         isArchived: z.boolean().optional(),
+        themeId: z.string().nullable().optional(),
+        themeOverrides: z.any().optional(),
       }),
     )
     .output(boardUpdateResponseSchema)
@@ -513,7 +521,7 @@ export const boardRouter = createTRPCRouter({
       }
 
       // Handle other updates (name, slug, visibility)
-      const hasOtherUpdates = input.name || input.slug || input.visibility !== undefined || input.isArchived !== undefined;
+      const hasOtherUpdates = input.name || input.slug || input.visibility !== undefined || input.isArchived !== undefined || input.themeId !== undefined || input.themeOverrides !== undefined;
 
       if (!hasOtherUpdates) {
         // Only favorite was updated, return success
@@ -541,6 +549,8 @@ export const boardRouter = createTRPCRouter({
         boardPublicId: input.boardPublicId,
         visibility: input.visibility,
         isArchived: input.isArchived,
+        themeId: input.themeId,
+        themeOverrides: input.themeOverrides,
       });
 
       if (!result)

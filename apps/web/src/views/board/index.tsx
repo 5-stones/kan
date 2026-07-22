@@ -37,6 +37,7 @@ import { useWorkspace } from "~/providers/workspace";
 import { api } from "~/utils/api";
 import { formatToArray } from "~/utils/helpers";
 import { DeleteCardConfirmation } from "~/views/card/components/DeleteCardConfirmation";
+import { ThemeInjector } from "~/components/ThemeInjector";
 import BoardDropdown from "./components/BoardDropdown";
 import Card from "./components/Card";
 import { CardContextDueDateModal } from "./components/CardContextDueDateModal";
@@ -55,6 +56,7 @@ import { NewListForm } from "./components/NewListForm";
 import { NewTemplateForm } from "./components/NewTemplateForm";
 import UpdateBoardSlugButton from "./components/UpdateBoardSlugButton";
 import { UpdateBoardSlugForm } from "./components/UpdateBoardSlugForm";
+import { UpdateBoardThemeForm } from "./components/UpdateBoardThemeForm";
 import VisibilityButton from "./components/VisibilityButton";
 
 type PublicListId = string;
@@ -463,6 +465,18 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 
         <Modal
           modalSize="sm"
+          isVisible={isOpen && modalContentType === "UPDATE_BOARD_THEME"}
+        >
+          <UpdateBoardThemeForm
+            boardPublicId={boardId ?? ""}
+            themeId={boardData?.themeId as string | undefined}
+            themeOverrides={boardData?.themeOverrides as Record<string, unknown> | null}
+            isTemplate={!!isTemplate}
+          />
+        </Modal>
+
+        <Modal
+          modalSize="sm"
           isVisible={isOpen && modalContentType === "MOVE_BOARD"}
         >
           <MoveBoardForm boardPublicId={boardId ?? ""} />
@@ -532,8 +546,19 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
     );
   };
 
+  const boardThemeId = boardData?.themeId as string | undefined;
+  const { data: boardThemeRecord } = api.theme.byId.useQuery(
+    { id: boardThemeId! },
+    { enabled: !!boardThemeId },
+  );
+
   return (
     <>
+      <ThemeInjector 
+        themeId={boardThemeId}
+        themeCss={boardThemeRecord?.css}
+        boardOverrides={boardData?.themeOverrides as Record<string, unknown> | null}
+      />
       <PageHead
         title={`${boardData?.name ?? (isTemplate ? t`Board` : t`Template`)} | ${workspace.name ?? t`Workspace`}`}
       />

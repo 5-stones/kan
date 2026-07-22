@@ -5,6 +5,7 @@ import {
   boolean,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -16,6 +17,7 @@ import {
 import { boards } from "./boards";
 import { workspaceMemberPermissions, workspaceRoles } from "./permissions";
 import { subscription } from "./subscriptions";
+import { themes } from "./themes";
 import { users } from "./users";
 
 export const memberRoles = ["admin", "member", "guest"] as const;
@@ -51,6 +53,8 @@ export const workspaces = pgTable(
     showEmailsToMembers: boolean("showEmailsToMembers").notNull().default(true),
     weekStartDay: integer("weekStartDay").notNull().default(1),
     cardPrefix: varchar("cardPrefix", { length: 10 }).notNull().default(""),
+    themeId: varchar("themeId", { length: 255 }),
+    themeOverrides: jsonb("themeOverrides"),
     cardCounter: integer("cardCounter").notNull().default(0),
     createdBy: uuid("createdBy").references(() => users.id, {
       onDelete: "set null",
@@ -80,6 +84,12 @@ export const workspaceRelations = relations(workspaces, ({ one, many }) => ({
   boards: many(boards),
   subscriptions: many(subscription),
   roles: many(workspaceRoles),
+  theme: one(themes, {
+    fields: [workspaces.themeId],
+    references: [themes.id],
+    relationName: "workspaceTheme",
+  }),
+  customThemes: many(themes, { relationName: "workspaceCustomThemes" }),
 }));
 
 export const workspaceMembers = pgTable("workspace_members", {

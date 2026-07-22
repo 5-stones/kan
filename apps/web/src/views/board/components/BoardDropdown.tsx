@@ -10,6 +10,7 @@ import {
   HiStar,
 } from "react-icons/hi2";
 import { IoArchiveOutline } from "react-icons/io5";
+import { TbPalette } from "react-icons/tb";
 import Dropdown from "~/components/Dropdown";
 import { usePermissions } from "~/hooks/usePermissions";
 import { useModal } from "~/providers/modal";
@@ -106,6 +107,15 @@ export default function BoardDropdown({
           label: t`Edit board URL`,
           action: () => openModal("UPDATE_BOARD_SLUG"),
           icon: <HiLink className="h-[16px] w-[16px] text-dark-900" />,
+        },
+      ]
+      : []),
+    ...(canEditBoard
+      ? [
+        {
+          label: isTemplate ? t`Edit template theme` : t`Edit board theme`,
+          action: () => openModal("UPDATE_BOARD_THEME"),
+          icon: <TbPalette className="h-[16px] w-[16px] text-dark-900" />,
         },
       ]
       : []),

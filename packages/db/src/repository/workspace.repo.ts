@@ -70,6 +70,8 @@ export const create = async (
     createdByEmail: string;
     description?: string;
     plan?: "free" | "team" | "pro" | "enterprise";
+    themeId?: string;
+    themeOverrides?: unknown;
   },
 ) => {
   const [workspace] = await db
@@ -83,6 +85,8 @@ export const create = async (
         description: workspaceInput.description,
       }),
       ...(workspaceInput.plan && { plan: workspaceInput.plan }),
+      ...(workspaceInput.themeId !== undefined && { themeId: workspaceInput.themeId }),
+      ...(workspaceInput.themeOverrides !== undefined && { themeOverrides: workspaceInput.themeOverrides }),
       cardPrefix: generateWorkspacePrefix(workspaceInput.name),
       cardCounter: 0,
     })
@@ -93,6 +97,8 @@ export const create = async (
       slug: workspaces.slug,
       description: workspaces.description,
       plan: workspaces.plan,
+      themeId: workspaces.themeId,
+      themeOverrides: workspaces.themeOverrides,
       cardPrefix: workspaces.cardPrefix,
     });
 
@@ -141,6 +147,8 @@ export const update = async (
     description?: string;
     showEmailsToMembers?: boolean;
     weekStartDay?: number;
+    themeId?: string | null;
+    themeOverrides?: unknown;
   },
 ) => {
   const [result] = await db
@@ -152,6 +160,8 @@ export const update = async (
       description: workspaceInput.description,
       showEmailsToMembers: workspaceInput.showEmailsToMembers,
       weekStartDay: workspaceInput.weekStartDay,
+      themeId: workspaceInput.themeId,
+      themeOverrides: workspaceInput.themeOverrides,
     })
     .where(eq(workspaces.publicId, workspacePublicId))
     .returning({
@@ -163,6 +173,8 @@ export const update = async (
       plan: workspaces.plan,
       showEmailsToMembers: workspaces.showEmailsToMembers,
       weekStartDay: workspaces.weekStartDay,
+      themeId: workspaces.themeId,
+      themeOverrides: workspaces.themeOverrides,
     });
 
   return result;
@@ -208,6 +220,8 @@ export const getByPublicIdWithMembers = (
       slug: true,
       showEmailsToMembers: true,
       weekStartDay: true,
+      themeId: true,
+      themeOverrides: true,
     },
     with: {
       members: {
@@ -262,6 +276,8 @@ export const getBySlugWithBoards = (db: dbClient, workspaceSlug: string) => {
       name: true,
       description: true,
       slug: true,
+      themeId: true,
+      themeOverrides: true,
     },
     with: {
       boards: {
@@ -301,6 +317,8 @@ export const getAllByUserId = async (db: dbClient, userId: string) => {
           weekStartDay: true,
           cardPrefix: true,
           deletedAt: true,
+          themeId: true,
+          themeOverrides: true,
         },
         // https://github.com/drizzle-team/drizzle-orm/issues/2903
         // where: isNull(workspaces.deletedAt),

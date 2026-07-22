@@ -11,6 +11,8 @@ export const boardListItemSchema = z.object({
   publicId: z.string(),
   name: z.string(),
   favorite: z.boolean(),
+  themeId: z.string().nullable().optional(),
+  themeOverrides: z.record(z.any()).nullable().optional(),
   lists: z.array(
     z.object({
       publicId: z.string(),
@@ -56,6 +58,8 @@ export const boardDetailSchema = z.object({
   visibility: z.string(),
   isArchived: z.boolean(),
   favorite: z.boolean(),
+  themeId: z.string().nullable().optional(),
+  themeOverrides: z.record(z.any()).nullable().optional(),
   workspace: z.object({
     publicId: z.string(),
     cardPrefix: z.string(),
@@ -97,6 +101,8 @@ export const boardBySlugSchema = z.object({
   name: z.string(),
   slug: z.string(),
   visibility: z.string(),
+  themeId: z.string().nullable().optional(),
+  themeOverrides: z.record(z.any()).nullable().optional(),
   workspace: z.object({
     publicId: z.string(),
     name: z.string(),
@@ -123,10 +129,17 @@ export const boardBySlugSchema = z.object({
 export const boardCreateResponseSchema = z.object({
   publicId: z.string(),
   name: z.string(),
+  themeId: z.string().nullable().optional(),
+  themeOverrides: z.record(z.any()).nullable().optional(),
 });
 
 // ─── board.update ────────────────────────────────────────────
 export const boardUpdateResponseSchema = z.union([
   z.object({ success: z.boolean() }),
-  z.object({ publicId: z.string(), name: z.string() }),
+  z.object({
+    publicId: z.string(),
+    name: z.string(),
+    themeId: z.string().nullable().optional(),
+    themeOverrides: z.record(z.any()).nullable().optional(),
+  }),
 ]);

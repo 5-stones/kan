@@ -9,6 +9,7 @@ import { HiBolt } from "react-icons/hi2";
 import {
   TbLayoutSidebarLeftCollapse,
   TbLayoutSidebarLeftExpand,
+  TbPalette,
 } from "react-icons/tb";
 import { twMerge } from "tailwind-merge";
 
@@ -90,7 +91,8 @@ export default function SideNavigation({
   const navigation: {
     name: string;
     href: string;
-    icon: object;
+    icon?: object;
+    reactIcon?: React.ReactNode;
     keyboardShortcut: KeyboardShortcut;
   }[] = [
     {
@@ -115,6 +117,18 @@ export default function SideNavigation({
         action: () => router.push("/templates"),
         group: "NAVIGATION",
         description: t`Go to templates`,
+      },
+    },
+    {
+      name: t`Themes`,
+      href: `/${workspace.slug}/themes`,
+      reactIcon: <TbPalette className="h-[18px] w-[18px]" strokeWidth={2} />,
+      keyboardShortcut: {
+        type: "SEQUENCE",
+        strokes: [{ key: "G" }, { key: "H" }],
+        action: () => router.push(`/${workspace.slug}/themes`),
+        group: "NAVIGATION",
+        description: t`Go to themes`,
       },
     },
     {
@@ -195,6 +209,7 @@ export default function SideNavigation({
                   current={pathname.includes(item.href)}
                   name={item.name}
                   json={item.icon}
+                  icon={item.reactIcon}
                   isCollapsed={isCollapsed}
                   onCloseSideNav={onCloseSideNav}
                   keyboardShortcut={item.keyboardShortcut}

@@ -211,6 +211,8 @@ export const workspaceRouter = createTRPCRouter({
           .max(64)
           .regex(/^(?![-]+$)[a-zA-Z0-9-]+$/)
           .optional(),
+        themeId: z.string().optional(),
+        themeOverrides: z.any().optional(),
       }),
     )
     .output(workspaceCreateResponseSchema)
@@ -263,6 +265,8 @@ export const workspaceRouter = createTRPCRouter({
         slug: workspaceSlug,
         createdBy: userId,
         createdByEmail: userEmail,
+        themeId: input.themeId,
+        themeOverrides: input.themeOverrides,
         ...(input.description && { description: input.description }),
       });
 
@@ -342,6 +346,8 @@ export const workspaceRouter = createTRPCRouter({
         weekStartDay: z
           .union([z.literal(0), z.literal(1), z.literal(6)])
           .optional(),
+        themeId: z.string().nullable().optional(),
+        themeOverrides: z.any().optional(),
       }),
     )
     .output(workspaceUpdateResponseSchema)
@@ -404,6 +410,8 @@ export const workspaceRouter = createTRPCRouter({
           description: input.description,
           showEmailsToMembers: input.showEmailsToMembers,
           weekStartDay: input.weekStartDay,
+          themeId: input.themeId,
+          themeOverrides: input.themeOverrides,
         },
       );
 

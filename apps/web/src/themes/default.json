@@ -1,0 +1,24 @@
+{
+  "name": "Default Theme",
+  "colors": {
+    "primary": "#3b82f6",
+    "secondary": "#10b981",
+    "background": "#ffffff",
+    "surface": "#f9fafb",
+    "text": "#111827",
+    "textMuted": "#6b7280",
+    "border": "#e5e7eb"
+  },
+  "fonts": {
+    "body": "Inter, system-ui, sans-serif",
+    "heading": "Inter, system-ui, sans-serif",
+    "monospace": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+  },
+  "spacing": {
+    "xs": "4px",
+    "sm": "8px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "32px"
+  }
+}

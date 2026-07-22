@@ -13,6 +13,8 @@ export const workspaceListItemSchema = z.object({
     plan: z.enum(["free", "team", "pro", "enterprise"]),
     weekStartDay: z.number().nullable(),
     cardPrefix: z.string(),
+    themeId: z.string().nullable().optional(),
+    themeOverrides: z.record(z.any()).nullable().optional(),
     deletedAt: z.date().nullable(),
   }),
 });
@@ -50,6 +52,8 @@ export const workspaceDetailSchema = z.object({
   slug: z.string(),
   showEmailsToMembers: z.boolean().nullable(),
   weekStartDay: z.number().nullable(),
+  themeId: z.string().nullable().optional(),
+  themeOverrides: z.record(z.any()).nullable().optional(),
   members: z.array(workspaceMemberDetailSchema),
   subscriptions: z.array(workspaceSubscriptionSchema),
 });
@@ -60,6 +64,8 @@ export const workspaceWithBoardsSchema = z.object({
   name: z.string(),
   description: z.string().nullable(),
   slug: z.string(),
+  themeId: z.string().nullable().optional(),
+  themeOverrides: z.record(z.any()).nullable().optional(),
   boards: z.array(
     z.object({
       publicId: z.string(),
@@ -77,6 +83,8 @@ export const workspaceCreateResponseSchema = z.object({
   description: z.string().nullable(),
   plan: z.enum(["free", "team", "pro", "enterprise"]),
   cardPrefix: z.string(),
+  themeId: z.string().nullable().optional(),
+  themeOverrides: z.record(z.any()).nullable().optional(),
 });
 
 // ─── workspace.update ────────────────────────────────────────
@@ -88,6 +96,8 @@ export const workspaceUpdateResponseSchema = z.object({
   plan: z.enum(["free", "team", "pro", "enterprise"]),
   showEmailsToMembers: z.boolean().nullable(),
   weekStartDay: z.number().nullable(),
+  themeId: z.string().nullable().optional(),
+  themeOverrides: z.record(z.any()).nullable().optional(),
 });
 
 // ─── workspace.delete ────────────────────────────────────────

@@ -50,6 +50,8 @@ export const getAllByWorkspaceId = async (
     columns: {
       publicId: true,
       name: true,
+      themeId: true,
+      themeOverrides: true,
     },
     with: {
       userFavorites: {
@@ -198,6 +200,8 @@ export const getByPublicId = async (
       slug: true,
       visibility: true,
       isArchived: true,
+      themeId: true,
+      themeOverrides: true,
     },
     with: {
       userFavorites: {
@@ -419,6 +423,8 @@ export const getBySlug = async (
       name: true,
       slug: true,
       visibility: true,
+      themeId: true,
+      themeOverrides: true,
     },
     with: {
       workspace: {
@@ -607,6 +613,8 @@ export const create = async (
     slug: string;
     type?: "regular" | "template";
     sourceBoardId?: number;
+    themeId?: string;
+    themeOverrides?: unknown;
   },
 ) => {
   const [result] = await db
@@ -620,11 +628,15 @@ export const create = async (
       slug: boardInput.slug,
       type: boardInput.type ?? "regular",
       sourceBoardId: boardInput.sourceBoardId,
+      ...(boardInput.themeId !== undefined && { themeId: boardInput.themeId }),
+      ...(boardInput.themeOverrides !== undefined && { themeOverrides: boardInput.themeOverrides }),
     })
     .returning({
       id: boards.id,
       publicId: boards.publicId,
       name: boards.name,
+      themeId: boards.themeId,
+      themeOverrides: boards.themeOverrides,
     });
 
   return result;
@@ -638,6 +650,8 @@ export const update = async (
     visibility: BoardVisibilityStatus | undefined;
     boardPublicId: string;
     isArchived?: boolean;
+    themeId?: string | null;
+    themeOverrides?: unknown;
   },
 ) => {
   const [result] = await db
@@ -647,12 +661,16 @@ export const update = async (
       slug: boardInput.slug,
       visibility: boardInput.visibility,
       updatedAt: new Date(),
+      themeId: boardInput.themeId,
+      themeOverrides: boardInput.themeOverrides,
       ...(boardInput.isArchived !== undefined && { isArchived: boardInput.isArchived })
     })
     .where(eq(boards.publicId, boardInput.boardPublicId))
     .returning({
       publicId: boards.publicId,
       name: boards.name,
+      themeId: boards.themeId,
+      themeOverrides: boards.themeOverrides,
     });
 
   return result;
@@ -806,9 +824,15 @@ export const createFromSnapshot = async (
     name?: string;
     type: "regular" | "template";
     sourceBoardId?: number;
+    themeId?: string;
+    themeOverrides?: unknown;
   },
 ) => {
   return db.transaction(async (tx) => {
+    // Determine the theme info to use: 
+    // From inputs first, then fallback to source (if existing in the source type)
+    // Note: Since `args.source` is currently not defining themeId/themeOverrides rigidly,
+    // we use `any` casting or assume it's omitted on source.
     const [newBoard] = await tx
       .insert(boards)
       .values({
@@ -819,11 +843,15 @@ export const createFromSnapshot = async (
         workspaceId: args.workspaceId,
         type: args.type,
         sourceBoardId: args.sourceBoardId,
+        themeId: args.themeId ?? (args.source as any).themeId,
+        themeOverrides: args.themeOverrides ?? (args.source as any).themeOverrides,
       })
       .returning({
         id: boards.id,
         publicId: boards.publicId,
         name: boards.name,
+        themeId: boards.themeId,
+        themeOverrides: boards.themeOverrides,
       });
 
     if (!newBoard) throw new Error("Failed to create board");

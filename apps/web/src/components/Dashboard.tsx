@@ -17,6 +17,7 @@ import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { useWorkspace, WorkspaceProvider } from "~/providers/workspace";
 import { api } from "~/utils/api";
+import { ThemeInjector } from "~/components/ThemeInjector";
 import { ChangePasswordFormConfirmation } from "~/views/settings/components/ChangePasswordConfirmation";
 import Button from "./Button";
 import Modal from "./modal";
@@ -49,10 +50,16 @@ export default function Dashboard({
 }: DashboardProps) {
   const { resolvedTheme } = useTheme();
   const { openModal, closeModal, modalContentType } = useModal();
-  const { availableWorkspaces, hasLoaded } = useWorkspace();
+  const { availableWorkspaces, hasLoaded, workspace } = useWorkspace();
   const { showPopup } = usePopup();
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const workspaceThemeId = workspace?.themeId as string | undefined;
+  const { data: themeRecord } = api.theme.byId.useQuery(
+    { id: workspaceThemeId! },
+    { enabled: !!workspaceThemeId },
+  );
 
   const { data: session, isPending: sessionLoading } = authClient.useSession();
   const { data: user, isLoading: userLoading } = api.user.getUser.useQuery(
@@ -171,6 +178,11 @@ export default function Dashboard({
 
   return (
     <>
+      <ThemeInjector 
+        themeId={workspace?.themeId as string | undefined}
+        themeCss={themeRecord?.css}
+        workspaceOverrides={workspace?.themeOverrides}
+      />
       <style jsx global>{`
         html {
           height: 100vh;

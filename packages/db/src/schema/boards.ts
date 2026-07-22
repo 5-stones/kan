@@ -12,10 +12,12 @@ import {
   uuid,
   varchar,
   boolean,
+  jsonb,
 } from "drizzle-orm/pg-core";
 import { imports } from "./imports";
 import { labels } from "./labels";
 import { lists } from "./lists";
+import { themes } from "./themes";
 import { users } from "./users";
 import { workspaces } from "./workspaces";
 
@@ -57,6 +59,10 @@ export const boards = pgTable(
     type: boardTypeEnum("type").notNull().default("regular"),
     isArchived: boolean("isArchived").notNull().default(false),
     sourceBoardId: bigint("sourceBoardId", { mode: "number" }),
+    themeId: varchar("themeId", { length: 255 }).references(() => themes.id, {
+      onDelete: "set null",
+    }),
+    themeOverrides: jsonb("themeOverrides"),
   },
   (table) => [
     index("board_is_archived_idx").on(table.isArchived),
@@ -93,6 +99,11 @@ export const boardsRelations = relations(boards, ({ one, many }) => ({
     fields: [boards.workspaceId],
     references: [workspaces.id],
     relationName: "boardWorkspace",
+  }),
+  theme: one(themes, {
+    fields: [boards.themeId],
+    references: [themes.id],
+    relationName: "boardTheme",
   }),
 }));
 

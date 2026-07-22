@@ -21,6 +21,8 @@ interface Workspace {
   role: "admin" | "member" | "guest";
   weekStartDay: 0 | 1 | 6;
   cardPrefix: string;
+  themeId?: string | null;
+  themeOverrides?: Record<string, any> | null;
 }
 
 const initialWorkspace: Workspace = {
@@ -96,6 +98,8 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({
         plan: workspace.plan,
         weekStartDay: workspace.weekStartDay,
         cardPrefix: workspace.cardPrefix,
+        themeId: workspace.themeId,
+        themeOverrides: workspace.themeOverrides,
         hasLoaded: true,
       })) as Workspace[];
 
@@ -133,6 +137,8 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({
           role: selectedWorkspace.role as "admin" | "member" | "guest",
           weekStartDay: selectedWorkspace.workspace.weekStartDay as 0 | 1 | 6,
           cardPrefix: selectedWorkspace.workspace.cardPrefix,
+          themeId: selectedWorkspace.workspace.themeId,
+          themeOverrides: selectedWorkspace.workspace.themeOverrides,
         });
 
         if (workspacePublicId) {
@@ -159,6 +165,8 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({
       role: primaryWorkspaceRole as "admin" | "member" | "guest",
       weekStartDay: primaryWorkspace.weekStartDay as 0 | 1 | 6,
       cardPrefix: primaryWorkspace.cardPrefix,
+      themeId: primaryWorkspace.themeId,
+      themeOverrides: primaryWorkspace.themeOverrides,
     });
     setHasLoaded(true);
   }, [
