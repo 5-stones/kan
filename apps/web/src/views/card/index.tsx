@@ -16,6 +16,7 @@ import LabelIcon from "~/components/LabelIcon";
 import Modal from "~/components/modal";
 import { NewWorkspaceForm } from "~/components/NewWorkspaceForm";
 import { PageHead } from "~/components/PageHead";
+import { ThemeInjector } from "~/components/ThemeInjector";
 import { EditYouTubeModal } from "~/components/YouTubeEmbed/EditYouTubeModal";
 import { usePermissions } from "~/hooks/usePermissions";
 import { useModal } from "~/providers/modal";
@@ -119,7 +120,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
     }) ?? [];
 
   return (
-    <div className="h-full w-[360px] border-l-[1px] border-light-300 bg-light-50 p-8 text-light-900 dark:border-dark-300 dark:bg-dark-50 dark:text-dark-900">
+    <div className="h-full w-[360px] border-l-[1px] border-border bg-background p-8 text-textMuted dark:border-borderDark dark:bg-backgroundDark dark:text-textMutedDark">
       <div className="mb-4 flex w-full flex-row pt-[18px]">
         <p className="my-2 mb-2 w-[100px] text-sm font-medium">{t`List`}</p>
         <ListSelector
@@ -213,6 +214,12 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
   const board = card?.list.board;
   const workspaceMembers = board?.workspace.members;
   const boardId = board?.publicId;
+
+  const boardThemeId = board?.themeId as string | undefined;
+  const { data: boardThemeRecord } = api.theme.byId.useQuery(
+    { id: boardThemeId! },
+    { enabled: !!boardThemeId },
+  );
 
   const editorWorkspaceMembers =
     workspaceMembers
@@ -317,12 +324,19 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
 
   return (
     <>
+      <ThemeInjector
+        themeId={boardThemeId}
+        themeCss={boardThemeRecord?.css}
+        themeVariables={boardThemeRecord?.variables as Record<string, any> | null}
+        boardOverrides={board?.themeOverrides as Record<string, unknown> | null}
+        scope="#dashboard-content"
+      />
       <PageHead
         title={t`${card?.title ?? t`Card`} | ${board?.name ?? t`Board`}`}
       />
       <div className="flex h-full flex-1 flex-col overflow-hidden">
         {/* Full-width top strip with board link and dropdown */}
-        <div className="flex w-full items-center justify-between border-b-[1px] border-light-300 bg-light-50 px-8 py-2 dark:border-dark-300 dark:bg-dark-50">
+        <div className="flex w-full items-center justify-between border-b-[1px] border-border bg-background px-8 py-2 dark:border-borderDark dark:bg-backgroundDark">
           {!card && isLoading && (
             <div className="flex space-x-2">
               <div className="h-[1.5rem] w-[150px] animate-pulse rounded-[5px] bg-light-300 dark:bg-dark-300" />
@@ -332,14 +346,14 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
             <>
               <div className="flex items-center gap-1">
                 <Link
-                  className="whitespace-nowrapleading-[1.5rem] text-sm font-bold text-light-900 dark:text-dark-950"
+                  className="whitespace-nowrapleading-[1.5rem] text-sm font-bold text-text dark:text-textDark"
                   href={`${isTemplate ? "/templates" : "/boards"}`}
                 >
                   {workspace.name}
                 </Link>
-                <IoChevronForwardSharp className="h-[10px] w-[10px] text-light-900 dark:text-dark-900" />
+                <IoChevronForwardSharp className="h-[10px] w-[10px] text-textMuted dark:text-textMutedDark" />
                 <Link
-                  className="whitespace-nowrap text-sm font-bold leading-[1.5rem] text-light-900 dark:text-dark-950"
+                  className="whitespace-nowrap text-sm font-bold leading-[1.5rem] text-text dark:text-textDark"
                   href={`${isTemplate ? "/templates" : "/boards"}/${board?.publicId}`}
                 >
                   {board?.name}
@@ -347,8 +361,8 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                 {card.cardNumber != null &&
                   card.list.board.workspace.cardPrefix && (
                     <>
-                      <IoChevronForwardSharp className="h-[10px] w-[10px] text-light-900 dark:text-dark-900" />
-                      <span className="whitespace-nowrap text-sm font-bold leading-[1.5rem] text-light-700 dark:text-dark-800">
+                      <IoChevronForwardSharp className="h-[10px] w-[10px] text-textMuted dark:text-textMutedDark" />
+                      <span className="whitespace-nowrap text-sm font-bold leading-[1.5rem] text-textMuted dark:text-textMutedDark">
                         {card.list.board.workspace.cardPrefix}-{card.cardNumber}
                       </span>
                     </>
@@ -371,7 +385,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                 />
                 <Link
                   href={`/${isTemplate ? "templates" : "boards"}/${boardId}`}
-                  className="flex h-7 w-7 items-center justify-center rounded-[5px] text-light-900 hover:bg-light-200 dark:text-dark-900 dark:hover:bg-dark-200"
+                  className="flex h-7 w-7 items-center justify-center rounded-[5px] text-textMuted hover:bg-light-200 dark:text-textMutedDark dark:hover:bg-dark-200"
                   aria-label={t`Close`}
                 >
                   <HiXMark className="h-4 w-4" />
@@ -380,7 +394,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
             </>
           )}
           {!card && !isLoading && (
-            <p className="block p-0 py-0 font-bold leading-[1.5rem] tracking-tight text-light-900 dark:text-dark-900 sm:text-[1rem]">
+            <p className="block p-0 py-0 font-bold leading-[1.5rem] tracking-tight text-textMuted dark:text-textMutedDark sm:text-[1rem]">
               {t`Card not found`}
             </p>
           )}
@@ -406,7 +420,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                         onBlur={canEdit ? handleSubmit(onSubmit) : undefined}
                         rows={1}
                         disabled={!canEdit}
-                        className={`block w-full resize-none overflow-hidden border-0 bg-transparent p-0 py-0 font-bold leading-relaxed text-neutral-900 focus:ring-0 dark:text-dark-1000 sm:text-[1.2rem] ${!canEdit ? "cursor-default" : ""}`}
+                        className={`block w-full resize-none overflow-hidden border-0 bg-transparent p-0 py-0 font-bold leading-relaxed text-text focus:ring-0 dark:text-textDark sm:text-[1.2rem] ${!canEdit ? "cursor-default" : ""}`}
                         onInput={(e) => {
                           const target = e.target as HTMLTextAreaElement;
                           target.style.height = "auto";
@@ -417,7 +431,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                   </form>
                 )}
                 {!card && !isLoading && (
-                  <p className="block p-0 py-0 font-bold leading-[2.3rem] tracking-tight text-neutral-900 dark:text-dark-1000 sm:text-[1.2rem]">
+                  <p className="block p-0 py-0 font-bold leading-[2.3rem] tracking-tight text-text dark:text-textDark sm:text-[1.2rem]">
                     {t`Card not found`}
                   </p>
                 )}
@@ -471,8 +485,8 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                       )}
                     </>
                   )}
-                  <div className="border-t-[1px] border-light-300 pt-12 dark:border-dark-300">
-                    <h2 className="text-md pb-4 font-medium text-light-1000 dark:text-dark-1000">
+                  <div className="border-t-[1px] border-border pt-12 dark:border-borderDark">
+                    <h2 className="text-md pb-4 font-medium text-text dark:text-textDark">
                       {t`Activity`}
                     </h2>
                     <div>

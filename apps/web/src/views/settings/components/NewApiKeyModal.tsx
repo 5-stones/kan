@@ -117,7 +117,7 @@ export default function NewApiKeyModal() {
                 onClick={() => copy(createdApiKey.key)}
               >
                 {copied ? (
-                  <HiMiniCheck className="h-5 w-5 text-green-600" />
+                  <HiMiniCheck className="h-5 w-5 text-secondary" />
                 ) : (
                   <HiOutlineDocumentDuplicate className="h-5 w-5" />
                 )}

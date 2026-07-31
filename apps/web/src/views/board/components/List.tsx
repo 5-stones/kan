@@ -95,7 +95,7 @@ export default function List({
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className="dark-text-dark-1000 mr-5 h-fit min-w-[18rem] max-w-[18rem] snap-start rounded-md border border-light-400 bg-light-300 py-2 pl-2 pr-1 text-neutral-900 dark:border-dark-300 dark:bg-dark-100 md:snap-align-none"
+          className="mr-5 h-fit min-w-[18rem] max-w-[18rem] snap-start rounded-md border border-border bg-surface py-2 pl-2 pr-1 text-text dark:border-borderDark dark:bg-surfaceDark dark:text-textDark md:snap-align-none"
         >
           <div className="mb-2 flex justify-between">
             <form
@@ -108,7 +108,7 @@ export default function List({
                 {...register("name")}
                 onBlur={handleSubmit(onSubmit)}
                 readOnly={!canEdit}
-                className="w-full border-0 bg-transparent px-4 pt-1 text-sm font-medium text-neutral-900 focus:ring-0 focus-visible:outline-none dark:text-dark-1000"
+                className="w-full border-0 bg-transparent px-4 pt-1 text-sm font-medium text-text focus:ring-0 focus-visible:outline-none dark:text-textDark"
               />
             </form>
             <div className="flex items-center">

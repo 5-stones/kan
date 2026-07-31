@@ -196,7 +196,7 @@ export function NewWorkspaceForm() {
             iconRight={
               slug && slug.length >= 3 && !errors.slug ? (
                 isWorkspaceSlugAvailable?.isAvailable ? (
-                  <HiCheck className="h-4 w-4 text-green-500" />
+                  <HiCheck className="h-4 w-4 text-secondary" />
                 ) : checkWorkspaceSlugAvailability.isPending || isTyping ? (
                   <LoadingSpinner />
                 ) : null

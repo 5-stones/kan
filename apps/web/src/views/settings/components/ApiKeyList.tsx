@@ -89,7 +89,7 @@ export default function ApiKeyList() {
           <div>
             <span
               className={twMerge(
-                "inline-flex items-center rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[11px] font-medium text-emerald-400 ring-1 ring-inset ring-emerald-500/20",
+                "inline-flex items-center rounded-md bg-secondary/10 px-1.5 py-0.5 text-[11px] font-medium text-secondary ring-1 ring-inset ring-secondary/20",
                 showSkeleton &&
                   "h-5 w-[50px] animate-pulse bg-light-200 ring-0 dark:bg-dark-200",
               )}

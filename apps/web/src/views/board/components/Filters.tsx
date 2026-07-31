@@ -216,7 +216,7 @@ const Filters = ({
         <Button
           variant="secondary"
           disabled={isLoading}
-          iconLeft={<IoFilterOutline />}
+          iconLeft={<IoFilterOutline className="text-primary group-hover:text-secondary" />}
         >
           {t`Filter`}
         </Button>

@@ -60,7 +60,7 @@ const UpdateBoardSlugButton = ({
       <button
         onClick={canEdit ? handleOnClick : undefined}
         disabled={!canEdit || isLoading}
-        className="hidden cursor-pointer items-center gap-2 rounded-full border-[1px] bg-light-50 p-1 pl-4 pr-1 text-sm text-light-950 hover:bg-light-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-dark-600 dark:bg-dark-50 dark:text-dark-900 dark:hover:bg-dark-100 xl:flex"
+        className="hidden cursor-pointer items-center gap-2 rounded-full border-[1px] border-border bg-background p-1 pl-4 pr-1 text-sm text-light-950 hover:bg-light-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-borderDark dark:bg-backgroundDark dark:text-dark-900 dark:hover:bg-dark-100 xl:flex"
       >
         <div className="flex items-center">
           {pathSegments.map((segment, i) => (

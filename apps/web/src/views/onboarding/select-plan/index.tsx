@@ -201,7 +201,7 @@ export default function SelectPlanView() {
                               {badge}
                             </span>
                             {plan.trial && billing === "annual" && (
-                              <span className="rounded-full bg-emerald-500/10 px-2 py-px text-[11px] font-medium text-emerald-600 ring-1 ring-inset ring-emerald-500/20 dark:text-emerald-400">
+                              <span className="rounded-full bg-secondary/10 px-2 py-px text-[11px] font-medium text-secondary ring-1 ring-inset ring-secondary/20">
                                 -20%
                               </span>
                             )}

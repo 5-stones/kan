@@ -122,7 +122,12 @@ export default function SideNavigation({
     {
       name: t`Themes`,
       href: `/${workspace.slug}/themes`,
-      reactIcon: <TbPalette className="h-[18px] w-[18px]" strokeWidth={2} />,
+      reactIcon: (
+        <TbPalette
+          className="h-[18px] w-[18px] text-light-1000 dark:text-dark-1000"
+          strokeWidth={2}
+        />
+      ),
       keyboardShortcut: {
         type: "SEQUENCE",
         strokes: [{ key: "G" }, { key: "H" }],

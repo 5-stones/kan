@@ -6,9 +6,18 @@ interface ThemeInjectorProps {
   themeId?: string;
   /** Base CSS from a selected custom theme record */
   themeCss?: string | null;
+  /** Colors/fonts/spacing from a selected custom theme record */
+  themeVariables?: Record<string, any> | null;
   workspaceOverrides?: Record<string, any> | null;
   templateOverrides?: Record<string, any> | null;
   boardOverrides?: Record<string, any> | null;
+  /**
+   * CSS selector the variables are written to. Defaults to `:root` for the
+   * workspace-wide theme. Board/card-level themes should scope to the
+   * dashboard content container (`#dashboard-content`) so they don't bleed
+   * into persistent chrome (sidebar, workspace icon) that lives outside it.
+   */
+  scope?: string;
 }
 
 const isObject = (item: any) => {
@@ -33,6 +42,16 @@ const deepMerge = (target: any, ...sources: any[]): any => {
   return deepMerge(target, ...sources);
 };
 
+function hexToRgbChannels(hex: string): string | null {
+  const match = /^#?([0-9a-f]{6})$/i.exec(hex);
+  if (!match) return null;
+  const value = match[1]!;
+  const r = parseInt(value.slice(0, 2), 16);
+  const g = parseInt(value.slice(2, 4), 16);
+  const b = parseInt(value.slice(4, 6), 16);
+  return `${r} ${g} ${b}`;
+}
+
 function objectToCssVariables(obj: Record<string, any>, prefix = ""): string {
   let css = "";
   for (const key in obj) {
@@ -52,14 +71,31 @@ function objectToCssVariables(obj: Record<string, any>, prefix = ""): string {
 export function ThemeInjector({
   themeId,
   themeCss,
+  themeVariables,
   workspaceOverrides,
   templateOverrides,
   boardOverrides,
+  scope = ":root",
 }: ThemeInjectorProps) {
+  // Only inject variables when a theme has actually been assigned/customized
+  // at this level. Otherwise skip entirely (even at `:root`) so every
+  // `bg-dark-*`/`bg-light-*` token falls back to its plain hardcoded value
+  // instead of the built-in default theme's light-mode-oriented colors
+  // silently bleeding into dark mode for installs that never picked a theme.
+  const hasOwnContent =
+    Boolean(themeId) ||
+    Boolean(themeCss) ||
+    Boolean(themeVariables && Object.keys(themeVariables).length > 0) ||
+    Boolean(workspaceOverrides && Object.keys(workspaceOverrides).length > 0) ||
+    Boolean(templateOverrides && Object.keys(templateOverrides).length > 0) ||
+    Boolean(boardOverrides && Object.keys(boardOverrides).length > 0);
+
+  if (!hasOwnContent) return null;
+
   const defaultThemeId = env("NEXT_PUBLIC_DEFAULT_THEME") || "default";
 
   // Only load a built-in theme's variables when the themeId matches a built-in key.
-  // Custom DB themes supply their CSS via `themeCss` instead.
+  // Custom DB themes supply their variables via `themeVariables` and raw CSS via `themeCss` instead.
   const builtInKey = (themeId && themeId in builtInThemes)
     ? (themeId as BuiltInThemeName)
     : (defaultThemeId in builtInThemes ? (defaultThemeId as BuiltInThemeName) : "default");
@@ -68,12 +104,20 @@ export function ThemeInjector({
 
   const mergedTheme = deepMerge(
     baseTheme,
+    themeVariables || {},
     workspaceOverrides || {},
     templateOverrides || {},
     boardOverrides || {},
   );
 
-  const cssVariables = objectToCssVariables(mergedTheme);
+  let cssVariables = objectToCssVariables(mergedTheme);
+
+  // Tailwind's opacity modifier (e.g. `bg-primary/10`) needs the color as
+  // space-separated rgb channels rather than the hex string used elsewhere.
+  for (const key of ["primary", "secondary"] as const) {
+    const rgb = hexToRgbChannels(mergedTheme.colors?.[key]);
+    if (rgb) cssVariables += `--theme-colors-${key}-rgb: ${rgb};\n`;
+  }
 
   // Build raw CSS: custom theme base first, then cascading overrides
   let rawCss = "";
@@ -84,7 +128,7 @@ export function ThemeInjector({
 
   return (
     <style dangerouslySetInnerHTML={{
-      __html: `:root {\n${cssVariables}}\n\n${rawCss}`,
+      __html: `${scope} {\n${cssVariables}}\n\n${rawCss}`,
     }} />
   );
 }

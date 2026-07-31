@@ -18,14 +18,21 @@ import { useWorkspace } from "~/providers/workspace";
 import defaultTheme from "~/themes/default.json";
 import { api } from "~/utils/api";
 
-const COLOR_VARS = [
-  { key: "primary",    label: t`Primary`,    default: defaultTheme.colors.primary },
-  { key: "secondary",  label: t`Secondary`,  default: defaultTheme.colors.secondary },
-  { key: "background", label: t`Background`, default: defaultTheme.colors.background },
-  { key: "surface",    label: t`Surface`,    default: defaultTheme.colors.surface },
-  { key: "text",       label: t`Text`,       default: defaultTheme.colors.text },
-  { key: "textMuted",  label: t`Text Muted`, default: defaultTheme.colors.textMuted },
-  { key: "border",     label: t`Border`,     default: defaultTheme.colors.border },
+// Accent colors are shared across light/dark mode (e.g. the same brand purple in both).
+const ACCENT_COLOR_VARS = [
+  { key: "primary",   label: t`Primary`,   default: defaultTheme.colors.primary },
+  { key: "secondary", label: t`Secondary`, default: defaultTheme.colors.secondary },
+] as const;
+
+// Neutral colors need separate light/dark values since e.g. a light "background"
+// would look broken in dark mode and vice versa.
+const NEUTRAL_COLOR_VARS = [
+  { key: "background", label: t`Background`, defaultLight: defaultTheme.colors.light.background, defaultDark: defaultTheme.colors.dark.background },
+  { key: "surface",    label: t`Surface`,    defaultLight: defaultTheme.colors.light.surface,    defaultDark: defaultTheme.colors.dark.surface },
+  { key: "card",       label: t`Card`,       defaultLight: defaultTheme.colors.light.card,       defaultDark: defaultTheme.colors.dark.card },
+  { key: "text",       label: t`Text`,       defaultLight: defaultTheme.colors.light.text,       defaultDark: defaultTheme.colors.dark.text },
+  { key: "textMuted",  label: t`Text Muted`, defaultLight: defaultTheme.colors.light.textMuted,  defaultDark: defaultTheme.colors.dark.textMuted },
+  { key: "border",     label: t`Border`,     defaultLight: defaultTheme.colors.light.border,     defaultDark: defaultTheme.colors.dark.border },
 ] as const;
 
 const FONT_VARS = [
@@ -45,13 +52,20 @@ const SPACING_VARS = [
 const themeFormSchema = z.object({
   name: z.string().min(1, { message: t`Name is required` }),
   // colors
-  colorPrimary:    z.string().optional(),
-  colorSecondary:  z.string().optional(),
-  colorBackground: z.string().optional(),
-  colorSurface:    z.string().optional(),
-  colorText:       z.string().optional(),
-  colorTextMuted:  z.string().optional(),
-  colorBorder:     z.string().optional(),
+  colorPrimary:   z.string().optional(),
+  colorSecondary: z.string().optional(),
+  colorLightBackground: z.string().optional(),
+  colorLightSurface:    z.string().optional(),
+  colorLightCard:       z.string().optional(),
+  colorLightText:       z.string().optional(),
+  colorLightTextMuted:  z.string().optional(),
+  colorLightBorder:     z.string().optional(),
+  colorDarkBackground: z.string().optional(),
+  colorDarkSurface:    z.string().optional(),
+  colorDarkCard:       z.string().optional(),
+  colorDarkText:       z.string().optional(),
+  colorDarkTextMuted:  z.string().optional(),
+  colorDarkBorder:     z.string().optional(),
   // fonts
   fontBody:       z.string().optional(),
   fontHeading:    z.string().optional(),
@@ -68,7 +82,12 @@ const themeFormSchema = z.object({
 type ThemeFormValues = z.infer<typeof themeFormSchema>;
 
 type ThemeVariables = {
-  colors?: Record<string, string>;
+  colors?: {
+    primary?: string;
+    secondary?: string;
+    light?: Record<string, string>;
+    dark?: Record<string, string>;
+  };
   fonts?: Record<string, string>;
   spacing?: Record<string, string>;
 };
@@ -76,13 +95,20 @@ type ThemeVariables = {
 function variablesToFormValues(variables: unknown): Partial<ThemeFormValues> {
   const v = (variables ?? {}) as ThemeVariables;
   return {
-    colorPrimary:    v.colors?.primary,
-    colorSecondary:  v.colors?.secondary,
-    colorBackground: v.colors?.background,
-    colorSurface:    v.colors?.surface,
-    colorText:       v.colors?.text,
-    colorTextMuted:  v.colors?.textMuted,
-    colorBorder:     v.colors?.border,
+    colorPrimary:   v.colors?.primary,
+    colorSecondary: v.colors?.secondary,
+    colorLightBackground: v.colors?.light?.background,
+    colorLightSurface:    v.colors?.light?.surface,
+    colorLightCard:       v.colors?.light?.card,
+    colorLightText:       v.colors?.light?.text,
+    colorLightTextMuted:  v.colors?.light?.textMuted,
+    colorLightBorder:     v.colors?.light?.border,
+    colorDarkBackground: v.colors?.dark?.background,
+    colorDarkSurface:    v.colors?.dark?.surface,
+    colorDarkCard:       v.colors?.dark?.card,
+    colorDarkText:       v.colors?.dark?.text,
+    colorDarkTextMuted:  v.colors?.dark?.textMuted,
+    colorDarkBorder:     v.colors?.dark?.border,
     fontBody:        v.fonts?.body,
     fontHeading:     v.fonts?.heading,
     fontMonospace:   v.fonts?.monospace,
@@ -97,13 +123,24 @@ function variablesToFormValues(variables: unknown): Partial<ThemeFormValues> {
 function formValuesToVariables(values: ThemeFormValues): ThemeVariables {
   return {
     colors: {
-      primary:    values.colorPrimary    ?? "",
-      secondary:  values.colorSecondary  ?? "",
-      background: values.colorBackground ?? "",
-      surface:    values.colorSurface    ?? "",
-      text:       values.colorText       ?? "",
-      textMuted:  values.colorTextMuted  ?? "",
-      border:     values.colorBorder     ?? "",
+      primary:   values.colorPrimary   ?? "",
+      secondary: values.colorSecondary ?? "",
+      light: {
+        background: values.colorLightBackground ?? "",
+        surface:    values.colorLightSurface    ?? "",
+        card:       values.colorLightCard       ?? "",
+        text:       values.colorLightText       ?? "",
+        textMuted:  values.colorLightTextMuted  ?? "",
+        border:     values.colorLightBorder     ?? "",
+      },
+      dark: {
+        background: values.colorDarkBackground ?? "",
+        surface:    values.colorDarkSurface    ?? "",
+        card:       values.colorDarkCard       ?? "",
+        text:       values.colorDarkText       ?? "",
+        textMuted:  values.colorDarkTextMuted  ?? "",
+        border:     values.colorDarkBorder     ?? "",
+      },
     },
     fonts: {
       body:       values.fontBody      ?? "",
@@ -167,11 +204,11 @@ function ThemeForm({
         />
       </div>
 
-      {/* Colors */}
+      {/* Accent colors */}
       <div>
-        <SectionHeading>{t`Colors`}</SectionHeading>
+        <SectionHeading>{t`Accent Colors`}</SectionHeading>
         <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3 lg:grid-cols-4">
-          {COLOR_VARS.map((item) => {
+          {ACCENT_COLOR_VARS.map((item) => {
             const { key, label } = item;
             const fieldKey = `color${key.charAt(0).toUpperCase()}${key.slice(1)}` as keyof ThemeFormValues;
             // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -193,6 +230,73 @@ function ThemeForm({
                     {...register(fieldKey)}
                     className="w-full rounded-md border border-light-300 px-2 py-1.5 text-xs font-mono dark:border-dark-300 dark:bg-dark-200"
                     placeholder={item.default}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Neutral colors (light/dark mode) */}
+      <div>
+        <SectionHeading>{t`Light Mode Colors`}</SectionHeading>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3 lg:grid-cols-4">
+          {NEUTRAL_COLOR_VARS.map((item) => {
+            const { key, label, defaultLight } = item;
+            const fieldKey = `colorLight${key.charAt(0).toUpperCase()}${key.slice(1)}` as keyof ThemeFormValues;
+            // eslint-disable-next-line react-hooks/rules-of-hooks
+            const textValue = useWatch({ control, name: fieldKey }) as string | undefined;
+            return (
+              <div key={key}>
+                <label className="mb-1 block text-xs font-medium text-light-1000 dark:text-dark-1000">
+                  {label}
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={textValue || defaultLight}
+                    onChange={(e) => setValue(fieldKey, e.target.value, { shouldDirty: true })}
+                    className="h-8 w-8 cursor-pointer rounded border border-light-300 p-0.5 dark:border-dark-300"
+                  />
+                  <input
+                    type="text"
+                    {...register(fieldKey)}
+                    className="w-full rounded-md border border-light-300 px-2 py-1.5 text-xs font-mono dark:border-dark-300 dark:bg-dark-200"
+                    placeholder={defaultLight}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <SectionHeading>{t`Dark Mode Colors`}</SectionHeading>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3 lg:grid-cols-4">
+          {NEUTRAL_COLOR_VARS.map((item) => {
+            const { key, label, defaultDark } = item;
+            const fieldKey = `colorDark${key.charAt(0).toUpperCase()}${key.slice(1)}` as keyof ThemeFormValues;
+            // eslint-disable-next-line react-hooks/rules-of-hooks
+            const textValue = useWatch({ control, name: fieldKey }) as string | undefined;
+            return (
+              <div key={key}>
+                <label className="mb-1 block text-xs font-medium text-light-1000 dark:text-dark-1000">
+                  {label}
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={textValue || defaultDark}
+                    onChange={(e) => setValue(fieldKey, e.target.value, { shouldDirty: true })}
+                    className="h-8 w-8 cursor-pointer rounded border border-light-300 p-0.5 dark:border-dark-300"
+                  />
+                  <input
+                    type="text"
+                    {...register(fieldKey)}
+                    className="w-full rounded-md border border-light-300 px-2 py-1.5 text-xs font-mono dark:border-dark-300 dark:bg-dark-200"
+                    placeholder={defaultDark}
                   />
                 </div>
               </div>

@@ -193,13 +193,13 @@ export default function MembersPage() {
               {showSkeleton ? (
                 <span
                   className={twMerge(
-                    "inline-flex items-center rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400 ring-1 ring-inset ring-emerald-500/20 sm:text-[11px]",
+                    "inline-flex items-center rounded-md bg-secondary/10 px-1.5 py-0.5 text-[10px] font-medium text-secondary ring-1 ring-inset ring-secondary/20 sm:text-[11px]",
                     "h-5 w-[50px] animate-pulse bg-light-200 ring-0 dark:bg-dark-200",
                   )}
                 />
               ) : (
                 <div className="relative inline-flex items-center">
-                  <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400 ring-1 ring-inset ring-emerald-500/20 sm:text-[11px]">
+                  <span className="inline-flex items-center gap-1 rounded-md bg-secondary/10 px-1.5 py-0.5 text-[10px] font-medium text-secondary ring-1 ring-inset ring-secondary/20 sm:text-[11px]">
                     {memberRole &&
                       memberRole.charAt(0).toUpperCase() + memberRole.slice(1)}
                     {canEditMember && session?.user.id !== memberId && (
@@ -289,7 +289,7 @@ export default function MembersPage() {
                 {!isPaidPlan && (
                   <Link
                     href={`/upgrade/select-plan?plan=pro&workspacePublicId=${workspace.publicId}&returnUrl=${encodeURIComponent("/members")}`}
-                    className="hidden items-center rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1 text-center text-xs text-emerald-400 dark:border-emerald-700 dark:bg-emerald-950 dark:text-emerald-400 lg:flex"
+                    className="hidden items-center rounded-full border border-secondary bg-secondary/10 px-3 py-1 text-center text-xs text-secondary lg:flex"
                   >
                     <HiBolt />
                     <span className="ml-1 font-medium">{t`Upgrade`}</span>
@@ -299,7 +299,7 @@ export default function MembersPage() {
                   className={twMerge(
                     "flex items-center rounded-full border px-3 py-1 text-center text-xs",
                     isPaidPlan
-                      ? "border-emerald-300 bg-emerald-50 text-emerald-400 dark:border-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
+                      ? "border-secondary bg-secondary/10 text-secondary"
                       : "border-light-300 bg-light-50 text-light-1000 dark:border-dark-300 dark:bg-dark-50 dark:text-dark-900",
                   )}
                 >

@@ -97,7 +97,13 @@ const VisibilityButton = ({
         >
           <Button
             variant="secondary"
-            iconLeft={isPublic ? <HiOutlineEye /> : <HiOutlineEyeSlash />}
+            iconLeft={
+              isPublic ? (
+                <HiOutlineEye className="text-primary group-hover:text-secondary" />
+              ) : (
+                <HiOutlineEyeSlash className="text-primary group-hover:text-secondary" />
+              )
+            }
             disabled={isLoading || !canEdit}
           >
             {t`Visibility`}

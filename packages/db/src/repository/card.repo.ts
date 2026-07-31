@@ -546,6 +546,8 @@ export const getWithListAndMembersByPublicId = async (
             columns: {
               publicId: true,
               name: true,
+              themeId: true,
+              themeOverrides: true,
             },
             with: {
               labels: {

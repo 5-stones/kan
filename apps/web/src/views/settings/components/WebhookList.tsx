@@ -97,7 +97,7 @@ function TableRow({
           className={twMerge(
             "inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-medium ring-1 ring-inset",
             active
-              ? "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20"
+              ? "bg-secondary/10 text-secondary ring-secondary/20"
               : "bg-gray-500/10 text-gray-400 ring-gray-500/20",
             showSkeleton &&
               "h-5 w-[50px] animate-pulse bg-light-200 ring-0 dark:bg-dark-200",

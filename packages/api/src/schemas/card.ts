@@ -68,6 +68,8 @@ export const cardDetailSchema = z.object({
     board: z.object({
       publicId: z.string(),
       name: z.string(),
+      themeId: z.string().nullable().optional(),
+      themeOverrides: z.record(z.string(), z.any()).nullable().optional(),
       labels: z.array(labelSchema),
       lists: z.array(
         z.object({

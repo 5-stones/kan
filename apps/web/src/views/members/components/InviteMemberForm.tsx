@@ -282,7 +282,7 @@ export function InviteMemberForm({
                   onClick={copyToClipboard}
                 >
                   {copied ? (
-                    <HiMiniCheck className="h-5 w-5 text-green-600" />
+                    <HiMiniCheck className="h-5 w-5 text-secondary" />
                   ) : (
                     <HiOutlineDocumentDuplicate className="h-5 w-5" />
                   )}
@@ -301,7 +301,7 @@ export function InviteMemberForm({
           (isPartnerTier && seatLimit !== null ? (
             <div className="mt-3 rounded-md bg-light-100 p-3 text-xs text-light-900 dark:bg-dark-200 dark:text-dark-900">
               <div className="flex items-center justify-between">
-                <span className="font-medium text-emerald-500 dark:text-emerald-400">
+                <span className="font-medium text-secondary">
                   {hasTeamSubscription ? t`Team Plan` : t`Pro Plan`}
                 </span>
                 <span className="text-light-900 dark:text-dark-900">
@@ -313,7 +313,7 @@ export function InviteMemberForm({
             <div className="mt-3 rounded-md bg-light-100 p-3 text-xs text-light-900 dark:bg-dark-200 dark:text-dark-900">
               {hasTeamSubscription || hasProSubscription ? (
                 <div>
-                  <span className="font-medium text-emerald-500 dark:text-emerald-400">
+                  <span className="font-medium text-secondary">
                     {hasTeamSubscription ? t`Team Plan` : t`Pro Plan ∞`}
                   </span>
                   <p className="mt-1">

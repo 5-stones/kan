@@ -554,10 +554,12 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 
   return (
     <>
-      <ThemeInjector 
+      <ThemeInjector
         themeId={boardThemeId}
         themeCss={boardThemeRecord?.css}
+        themeVariables={boardThemeRecord?.variables as Record<string, any> | null}
         boardOverrides={boardData?.themeOverrides as Record<string, unknown> | null}
+        scope="#dashboard-content"
       />
       <PageHead
         title={`${boardData?.name ?? (isTemplate ? t`Board` : t`Template`)} | ${workspace.name ?? t`Workspace`}`}
@@ -592,7 +594,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
           )}
           <div className="order-1 mb-4 flex items-center justify-end space-x-2 md:order-2 md:mb-0">
             {isTemplate && (
-              <div className="inline-flex cursor-default items-center justify-center whitespace-nowrap rounded-md border-[1px] border-light-300 bg-light-50 px-3 py-2 text-sm font-semibold text-light-950 shadow-sm dark:border-dark-300 dark:bg-dark-50 dark:text-dark-950">
+              <div className="inline-flex cursor-default items-center justify-center whitespace-nowrap rounded-md border-[1px] border-border bg-background px-3 py-2 text-sm font-semibold text-light-950 shadow-sm dark:border-borderDark dark:bg-backgroundDark dark:text-dark-950">
                 <span className="mr-2">
                   <HiOutlineRectangleStack />
                 </span>
@@ -641,7 +643,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
               <Button
                 iconLeft={
                   <HiOutlinePlusSmall
-                    className="-mr-0.5 h-5 w-5"
+                    className="-mr-0.5 h-5 w-5 text-primary group-hover:text-secondary"
                     aria-hidden="true"
                   />
                 }

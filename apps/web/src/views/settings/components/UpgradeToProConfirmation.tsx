@@ -67,7 +67,7 @@ export function UpgradeToProConfirmation({
                 <span className="text-sm text-neutral-900 dark:text-dark-1000">
                   {t`Unlimited members`}
                 </span>
-                <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 ring-1 ring-inset ring-emerald-500/20 dark:text-emerald-400 sm:text-[10px]">
+                <span className="inline-flex items-center rounded-full bg-secondary/10 px-2 py-0.5 text-[10px] font-medium text-secondary ring-1 ring-inset ring-secondary/20 sm:text-[10px]">
                   {t`Launch offer`}
                 </span>
               </div>

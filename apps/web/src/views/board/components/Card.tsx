@@ -68,9 +68,9 @@ const Card = ({
   const hasDueDate = !!dueDate;
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-md border border-light-200 bg-light-50 px-3 py-2 text-sm text-neutral-900 dark:border-dark-200 dark:bg-dark-200 dark:text-dark-1000 dark:hover:bg-dark-300">
+    <div className="flex flex-col overflow-hidden rounded-md border border-border bg-card px-3 py-2 text-sm text-text hover:bg-light-200 dark:border-borderDark dark:bg-cardDark dark:text-textDark dark:hover:bg-dark-300">
       {ticketNumber && (
-        <span className="mb-1 text-xs text-light-700 dark:text-dark-800">
+        <span className="mb-1 text-xs text-textMuted dark:text-textMutedDark">
           {ticketNumber}
         </span>
       )}
@@ -94,7 +94,7 @@ const Card = ({
           <div className="mt-2 flex items-center justify-between gap-1">
             <div className="flex items-center gap-2">
               {hasDescription && (
-                <div className="flex items-center gap-1 text-light-700 dark:text-dark-800">
+                <div className="flex items-center gap-1 text-textMuted dark:text-textMutedDark">
                   <HiBars3BottomLeft className="h-4 w-4" />
                 </div>
               )}
@@ -104,7 +104,7 @@ const Card = ({
                     "flex items-center gap-1",
                     isOverdue
                       ? "text-red-600 dark:text-red-400"
-                      : "text-light-800 dark:text-dark-800",
+                      : "text-textMuted dark:text-textMutedDark",
                   )}
                 >
                   <HiOutlineClock className="h-4 w-4" />
@@ -116,12 +116,12 @@ const Card = ({
                 </div>
               )}
               {comments.length > 0 && (
-                <div className="flex items-center gap-1 text-light-700 dark:text-dark-800">
+                <div className="flex items-center gap-1 text-textMuted dark:text-textMutedDark">
                   <HiChatBubbleLeft className="h-4 w-4" />
                 </div>
               )}
               {hasAttachments && (
-                <div className="flex items-center gap-1 text-light-700 dark:text-dark-800">
+                <div className="flex items-center gap-1 text-textMuted dark:text-textMutedDark">
                   <HiOutlinePaperClip className="h-4 w-4" />
                 </div>
               )}
