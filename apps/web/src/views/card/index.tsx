@@ -120,7 +120,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
     }) ?? [];
 
   return (
-    <div className="h-full w-[360px] border-l-[1px] border-border bg-background p-8 text-textMuted dark:border-borderDark dark:bg-backgroundDark dark:text-textMutedDark">
+    <div className="card-detail-panel h-full w-[360px] border-l-[1px] border-border bg-background p-8 text-textMuted dark:border-borderDark dark:bg-backgroundDark dark:text-textMutedDark">
       <div className="mb-4 flex w-full flex-row pt-[18px]">
         <p className="my-2 mb-2 w-[100px] text-sm font-medium">{t`List`}</p>
         <ListSelector
@@ -334,9 +334,9 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
       <PageHead
         title={t`${card?.title ?? t`Card`} | ${board?.name ?? t`Board`}`}
       />
-      <div className="flex h-full flex-1 flex-col overflow-hidden">
+      <div className="card-detail flex h-full flex-1 flex-col overflow-hidden">
         {/* Full-width top strip with board link and dropdown */}
-        <div className="flex w-full items-center justify-between border-b-[1px] border-border bg-background px-8 py-2 dark:border-borderDark dark:bg-backgroundDark">
+        <div className="card-detail-header flex w-full items-center justify-between border-b-[1px] border-border bg-background px-8 py-2 dark:border-borderDark dark:bg-backgroundDark">
           {!card && isLoading && (
             <div className="flex space-x-2">
               <div className="h-[1.5rem] w-[150px] animate-pulse rounded-[5px] bg-light-300 dark:bg-dark-300" />

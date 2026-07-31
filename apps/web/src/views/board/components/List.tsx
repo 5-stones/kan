@@ -95,9 +95,9 @@ export default function List({
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className="mr-5 h-fit min-w-[18rem] max-w-[18rem] snap-start rounded-md border border-border bg-surface py-2 pl-2 pr-1 text-text dark:border-borderDark dark:bg-surfaceDark dark:text-textDark md:snap-align-none"
+          className="board-list mr-5 h-fit min-w-[18rem] max-w-[18rem] snap-start rounded-md border border-border bg-surface py-2 pl-2 pr-1 text-text dark:border-borderDark dark:bg-surfaceDark dark:text-textDark md:snap-align-none"
         >
-          <div className="mb-2 flex justify-between">
+          <div className="board-list-header mb-2 flex justify-between">
             <form
               onSubmit={handleSubmit(onSubmit)}
               className="w-full focus-visible:outline-none"
