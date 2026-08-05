@@ -34,7 +34,7 @@ RUN git fetch --tags --unshallow 2>/dev/null || git fetch --tags 2>/dev/null || 
     echo "unknown") && \
     echo "$AUTO_VERSION" > /app/AUTO_VERSION
 
-RUN turbo prune --scope=@kan/web --scope=@kan/db --docker
+RUN turbo prune --scope=@kan/web --scope=@kan/db --scope=@kan/mcp --scope=@kan/docs --scope=@kan/api --scope=@kan/auth --scope=@kan/email --scope=@kan/logger --scope=@kan/shared --scope=@kan/stripe --docker
 
 # ============================================
 # Stage 3: Install dependencies
