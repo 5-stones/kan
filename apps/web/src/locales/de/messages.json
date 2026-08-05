@@ -577,7 +577,7 @@
     "message": "Annual",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/onboarding/select-plan/index.tsx", 64]],
+    "origin": [["src/views/onboarding/select-plan/index.tsx", 68]],
     "translation": "Jährlich"
   },
   "3bqt9U": {
@@ -833,7 +833,7 @@
     "message": "Best for small teams who want to collaborate and move faster together.",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/onboarding/select-plan/index.tsx", 87]],
+    "origin": [["src/views/onboarding/select-plan/index.tsx", 91]],
     "translation": "Ideal für kleine Teams, die gemeinsam arbeiten und schneller vorankommen möchten."
   },
   "qaS+1/": {
@@ -1294,7 +1294,7 @@
       ["src/views/card/components/DeleteChecklistConfirmation.tsx", 64],
       ["src/views/card/components/DeleteCommentConfirmation.tsx", 77],
       ["src/views/members/components/DeleteMemberConfirmation.tsx", 55],
-      ["src/views/onboarding/select-plan/index.tsx", 236],
+      ["src/views/onboarding/select-plan/index.tsx", 240],
       ["src/views/settings/components/Avatar.tsx", 287],
       ["src/views/settings/components/ChangePasswordConfirmation.tsx", 206],
       [
@@ -1444,7 +1444,7 @@
     "message": "Choose a plan",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/onboarding/select-plan/index.tsx", 149]],
+    "origin": [["src/views/onboarding/select-plan/index.tsx", 153]],
     "translation": "Tarif wählen"
   },
   "5EMoSo": {
@@ -1719,7 +1719,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/onboarding/select-plan/index.tsx", 242],
+      ["src/views/onboarding/select-plan/index.tsx", 246],
       ["src/views/onboarding/workspace-details/index.tsx", 315]
     ],
     "translation": "Weiter"
@@ -3016,8 +3016,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/onboarding/select-plan/index.tsx", 78],
-      ["src/views/onboarding/select-plan/index.tsx", 79],
+      ["src/views/onboarding/select-plan/index.tsx", 82],
+      ["src/views/onboarding/select-plan/index.tsx", 83],
       ["src/views/pricing/components/FeatureComparisonTable.tsx", 331],
       ["src/views/pricing/components/Pricing.tsx", 32],
       ["src/views/pricing/components/Pricing.tsx", 32],
@@ -3239,7 +3239,7 @@
     "message": "Good for individuals starting out who just need the essentials.",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/onboarding/select-plan/index.tsx", 80]],
+    "origin": [["src/views/onboarding/select-plan/index.tsx", 84]],
     "translation": "Gut geeignet für Einsteiger, die nur die wichtigsten Funktionen benötigen."
   },
   "cdyS7J": {
@@ -3986,7 +3986,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/onboarding/select-plan/index.tsx", 63],
+      ["src/views/onboarding/select-plan/index.tsx", 67],
       ["src/views/pricing/components/Pricing.tsx", 14],
       ["src/views/pricing/index.tsx", 20]
     ],
@@ -4602,7 +4602,7 @@
     "message": "Pick a plan to get started. All paid plans include a 14-day free trial.",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/onboarding/select-plan/index.tsx", 152]],
+    "origin": [["src/views/onboarding/select-plan/index.tsx", 156]],
     "translation": "Wählen Sie einen Tarif, um loszulegen. Alle kostenpflichtigen Tarife beinhalten eine 14-tägige kostenlose Testphase."
   },
   "GdgCoi": {
@@ -4829,7 +4829,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/onboarding/select-plan/index.tsx", 92],
+      ["src/views/onboarding/select-plan/index.tsx", 96],
       ["src/views/pricing/components/FeatureComparisonTable.tsx", 333],
       ["src/views/pricing/components/PricingTiers.tsx", 70]
     ],
@@ -5454,7 +5454,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/onboarding/select-plan/index.tsx", 315],
+      ["src/views/onboarding/select-plan/index.tsx", 319],
       ["src/views/onboarding/workspace-details/index.tsx", 386]
     ],
     "translation": "Abmelden"
@@ -5548,7 +5548,7 @@
     "message": "Solo",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/onboarding/select-plan/index.tsx", 77]],
+    "origin": [["src/views/onboarding/select-plan/index.tsx", 81]],
     "translation": "Solo"
   },
   "J9+zIR": {
@@ -5616,11 +5616,11 @@
     "translation": "Status"
   },
   "hQRttt": {
-    "translation": "Absenden",
     "message": "Submit",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/NewCommentForm.tsx", 60]]
+    "origin": [["src/views/card/components/NewCommentForm.tsx", 60]],
+    "translation": "Absenden"
   },
   "WYDptz": {
     "message": "Subscription Required",
@@ -5685,7 +5685,7 @@
     "message": "Team",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/onboarding/select-plan/index.tsx", 84]],
+    "origin": [["src/views/onboarding/select-plan/index.tsx", 88]],
     "translation": "Team"
   },
   "bff61F": {
@@ -6581,7 +6581,7 @@
     "message": "Unlimited members and a custom workspace username for teams ready to scale.",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/onboarding/select-plan/index.tsx", 95]],
+    "origin": [["src/views/onboarding/select-plan/index.tsx", 99]],
     "translation": "Unbegrenzte Mitglieder und ein individueller Workspace-Benutzername für Teams, die wachsen möchten."
   },
   "i5yNAO": {
@@ -6671,7 +6671,7 @@
     "comments": [],
     "origin": [
       ["src/views/members/index.tsx", 295],
-      ["src/views/onboarding/select-plan/index.tsx", 241]
+      ["src/views/onboarding/select-plan/index.tsx", 245]
     ],
     "translation": "Upgrade"
   },
@@ -7330,7 +7330,7 @@
     "message": "Your avatar",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/onboarding/select-plan/index.tsx", 260]],
+    "origin": [["src/views/onboarding/select-plan/index.tsx", 264]],
     "translation": "Ihr Avatar"
   },
   "evg7+A": {

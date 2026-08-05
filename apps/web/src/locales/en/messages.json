@@ -973,7 +973,7 @@
     "origin": [
       [
         "src/views/onboarding/select-plan/index.tsx",
-        64
+        68
       ]
     ],
     "translation": "Annual"
@@ -1393,7 +1393,7 @@
     "origin": [
       [
         "src/views/onboarding/select-plan/index.tsx",
-        87
+        91
       ]
     ],
     "translation": "Best for small teams who want to collaborate and move faster together."
@@ -2169,7 +2169,7 @@
       ],
       [
         "src/views/onboarding/select-plan/index.tsx",
-        236
+        240
       ],
       [
         "src/views/settings/components/Avatar.tsx",
@@ -2437,7 +2437,7 @@
     "origin": [
       [
         "src/views/onboarding/select-plan/index.tsx",
-        149
+        153
       ]
     ],
     "translation": "Choose a plan"
@@ -2885,7 +2885,7 @@
     "origin": [
       [
         "src/views/onboarding/select-plan/index.tsx",
-        242
+        246
       ],
       [
         "src/views/onboarding/workspace-details/index.tsx",
@@ -5059,11 +5059,11 @@
     "origin": [
       [
         "src/views/onboarding/select-plan/index.tsx",
-        78
+        82
       ],
       [
         "src/views/onboarding/select-plan/index.tsx",
-        79
+        83
       ],
       [
         "src/views/pricing/components/FeatureComparisonTable.tsx",
@@ -5455,7 +5455,7 @@
     "origin": [
       [
         "src/views/onboarding/select-plan/index.tsx",
-        80
+        84
       ]
     ],
     "translation": "Good for individuals starting out who just need the essentials."
@@ -6713,7 +6713,7 @@
     "origin": [
       [
         "src/views/onboarding/select-plan/index.tsx",
-        63
+        67
       ],
       [
         "src/views/pricing/components/Pricing.tsx",
@@ -7748,7 +7748,7 @@
     "origin": [
       [
         "src/views/onboarding/select-plan/index.tsx",
-        152
+        156
       ]
     ],
     "translation": "Pick a plan to get started. All paid plans include a 14-day free trial."
@@ -8252,7 +8252,7 @@
     "origin": [
       [
         "src/views/onboarding/select-plan/index.tsx",
-        92
+        96
       ],
       [
         "src/views/pricing/components/FeatureComparisonTable.tsx",
@@ -9311,7 +9311,7 @@
     "origin": [
       [
         "src/views/onboarding/select-plan/index.tsx",
-        315
+        319
       ],
       [
         "src/views/onboarding/workspace-details/index.tsx",
@@ -9467,7 +9467,7 @@
     "origin": [
       [
         "src/views/onboarding/select-plan/index.tsx",
-        77
+        81
       ]
     ],
     "translation": "Solo"
@@ -9577,7 +9577,6 @@
     "translation": "Status"
   },
   "hQRttt": {
-    "translation": "Submit",
     "message": "Submit",
     "placeholders": {},
     "comments": [],
@@ -9586,7 +9585,8 @@
         "src/views/card/components/NewCommentForm.tsx",
         60
       ]
-    ]
+    ],
+    "translation": "Submit"
   },
   "WYDptz": {
     "message": "Subscription Required",
@@ -9687,7 +9687,7 @@
     "origin": [
       [
         "src/views/onboarding/select-plan/index.tsx",
-        84
+        88
       ]
     ],
     "translation": "Team"
@@ -11183,7 +11183,7 @@
     "origin": [
       [
         "src/views/onboarding/select-plan/index.tsx",
-        95
+        99
       ]
     ],
     "translation": "Unlimited members and a custom workspace username for teams ready to scale."
@@ -11343,7 +11343,7 @@
       ],
       [
         "src/views/onboarding/select-plan/index.tsx",
-        241
+        245
       ]
     ],
     "translation": "Upgrade"
@@ -12441,7 +12441,7 @@
     "origin": [
       [
         "src/views/onboarding/select-plan/index.tsx",
-        260
+        264
       ]
     ],
     "translation": "Your avatar"

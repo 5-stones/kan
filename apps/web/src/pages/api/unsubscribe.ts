@@ -5,8 +5,12 @@ import { z } from "zod";
 
 import { withApiLogging } from "@kan/api/utils/apiLogging";
 import { withRateLimit } from "@kan/api/utils/rateLimit";
+import { updateSubscriberPreferences } from "@kan/email";
+import { createLogger } from "@kan/logger";
 
 import { env } from "~/env";
+
+const log = createLogger("unsubscribe");
 
 const requestSchema = z.object({
   token: z.string().min(1),
@@ -84,6 +88,7 @@ export default withRateLimit(
 
       const novu = new Novu({ secretKey: env.NOVU_API_KEY });
 
+      let novuFailed = false;
       try {
         await novu.subscribers.preferences.update(
           {
@@ -94,6 +99,18 @@ export default withRateLimit(
           payload.subscriberId,
         );
       } catch (error) {
+        novuFailed = true;
+      }
+
+      try {
+        await updateSubscriberPreferences(payload.subscriberId, {
+          email: false,
+        });
+      } catch (error) {
+        log.error({ err: error }, "Error updating subscriber preferences");
+      }
+
+      if (novuFailed) {
         return res.status(502).json({
           success: false,
           error:
