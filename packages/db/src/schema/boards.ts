@@ -63,6 +63,7 @@ export const boards = pgTable(
       onDelete: "set null",
     }),
     themeOverrides: jsonb("themeOverrides"),
+    customFieldsConfig: text("customFieldsConfig"),
   },
   (table) => [
     index("board_is_archived_idx").on(table.isArchived),

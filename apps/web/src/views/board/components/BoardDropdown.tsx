@@ -8,6 +8,7 @@ import {
   HiOutlineTrash,
   HiOutlineStar,
   HiStar,
+  HiOutlineAdjustmentsHorizontal,
 } from "react-icons/hi2";
 import { IoArchiveOutline } from "react-icons/io5";
 import { TbPalette } from "react-icons/tb";
@@ -116,6 +117,15 @@ export default function BoardDropdown({
           label: isTemplate ? t`Edit template theme` : t`Edit board theme`,
           action: () => openModal("UPDATE_BOARD_THEME"),
           icon: <TbPalette className="h-[16px] w-[16px] text-primary group-hover:text-secondary" />,
+        },
+      ]
+      : []),
+    ...(canEditBoard
+      ? [
+        {
+          label: t`Custom Fields`,
+          action: () => openModal("CUSTOM_FIELDS_CONFIG"),
+          icon: <HiOutlineAdjustmentsHorizontal className="h-[16px] w-[16px] text-dark-900" />,
         },
       ]
       : []),

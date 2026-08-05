@@ -8,6 +8,7 @@ import * as labelRepo from "@kan/db/repository/label.repo";
 import * as listRepo from "@kan/db/repository/list.repo";
 import * as workspaceRepo from "@kan/db/repository/workspace.repo";
 import { colours } from "@kan/shared/constants";
+import { parseCustomFieldsConfig } from "@kan/shared";
 import {
   convertDueDateFiltersToRanges,
   generateAvatarUrl,
@@ -189,6 +190,7 @@ export const boardRouter = createTRPCRouter({
           cards: await Promise.all(
             list.cards.map(async (card) => ({
               ...card,
+              customData: card.customData as Record<string, unknown> | null,
               members: await Promise.all(
                 card.members.map(async (member) => {
                   if (!member.user?.image) return member;
@@ -480,6 +482,7 @@ export const boardRouter = createTRPCRouter({
         isArchived: z.boolean().optional(),
         themeId: z.string().nullable().optional(),
         themeOverrides: z.any().optional(),
+        customFieldsConfig: z.string().nullable().optional(),
       }),
     )
     .output(boardUpdateResponseSchema)
@@ -520,8 +523,20 @@ export const boardRouter = createTRPCRouter({
         }
       }
 
+      // Validate custom fields YAML before persisting
+      if (input.customFieldsConfig) {
+        try {
+          parseCustomFieldsConfig(input.customFieldsConfig);
+        } catch (err) {
+          throw new TRPCError({
+            message: (err as Error).message,
+            code: "BAD_REQUEST",
+          });
+        }
+      }
+
       // Handle other updates (name, slug, visibility)
-      const hasOtherUpdates = input.name || input.slug || input.visibility !== undefined || input.isArchived !== undefined || input.themeId !== undefined || input.themeOverrides !== undefined;
+      const hasOtherUpdates = input.name || input.slug || input.visibility !== undefined || input.isArchived !== undefined || input.customFieldsConfig !== undefined || input.themeId !== undefined || input.themeOverrides !== undefined;
 
       if (!hasOtherUpdates) {
         // Only favorite was updated, return success
@@ -551,6 +566,7 @@ export const boardRouter = createTRPCRouter({
         isArchived: input.isArchived,
         themeId: input.themeId,
         themeOverrides: input.themeOverrides,
+        customFieldsConfig: input.customFieldsConfig,
       });
 
       if (!result)

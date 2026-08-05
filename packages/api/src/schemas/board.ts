@@ -43,6 +43,7 @@ const boardDetailCardSchema = z.object({
   index: z.number(),
   cardNumber: z.number().nullable(),
   dueDate: z.date().nullable(),
+  customData: z.record(z.string(), z.unknown()).nullable(),
   labels: z.array(labelSchema),
   members: z.array(boardCardMemberSchema),
   attachments: z.array(z.object({ publicId: z.string() })),
@@ -60,6 +61,7 @@ export const boardDetailSchema = z.object({
   favorite: z.boolean(),
   themeId: z.string().nullable().optional(),
   themeOverrides: z.record(z.any()).nullable().optional(),
+  customFieldsConfig: z.string().nullable(),
   workspace: z.object({
     publicId: z.string(),
     cardPrefix: z.string(),
