@@ -7,8 +7,12 @@ import * as workspaceRepo from "@kan/db/repository/workspace.repo";
 import { createThemeSchema, updateThemeSchema } from "../schemas/theme";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { assertPermission } from "../utils/permissions";
+import { loadRuntimeThemes } from "../utils/runtimeThemes";
 
 export const themeRouter = createTRPCRouter({
+  /** Themes loaded from the `KAN_THEMES_DIR` folder, keyed by filename. */
+  runtime: protectedProcedure.query(() => loadRuntimeThemes()),
+
   list: protectedProcedure
     .meta({
       openapi: {
@@ -101,6 +105,7 @@ export const themeRouter = createTRPCRouter({
         workspaceId: String(workspace.id),
         name: input.name,
         css: input.css,
+        imports: input.imports,
         variables: input.variables,
       });
     }),
@@ -147,6 +152,7 @@ export const themeRouter = createTRPCRouter({
       return themeRepo.update(ctx.db, input.id, {
         name: input.name,
         css: input.css,
+        imports: input.imports,
         variables: input.variables,
       });
     }),

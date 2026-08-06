@@ -26,6 +26,7 @@ export const create = async (
     workspaceId: string;
     name: string;
     css?: string;
+    imports?: string;
     variables?: any;
   }
 ) => {
@@ -36,6 +37,7 @@ export const create = async (
       workspaceId: themeInput.workspaceId,
       name: themeInput.name,
       css: themeInput.css ?? null,
+      imports: themeInput.imports ?? null,
       variables: themeInput.variables ?? null,
     })
     .returning();
@@ -49,6 +51,7 @@ export const update = async (
   themeInput: {
     name?: string;
     css?: string;
+    imports?: string;
     variables?: any;
   }
 ) => {

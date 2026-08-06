@@ -546,18 +546,29 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
     );
   };
 
-  const boardThemeId = boardData?.themeId as string | undefined;
+  const workspaceThemeId = workspace?.themeId as string | undefined;
+  const boardThemeId = (boardData?.themeId as string | undefined) ?? workspaceThemeId;
   const { data: boardThemeRecord } = api.theme.byId.useQuery(
-    { id: boardThemeId! },
-    { enabled: !!boardThemeId },
+    { id: boardData?.themeId as string },
+    { enabled: !!boardData?.themeId },
   );
+  const { data: workspaceThemeRecord } = api.theme.byId.useQuery(
+    { id: workspaceThemeId! },
+    { enabled: !boardData?.themeId && !!workspaceThemeId },
+  );
+  // Board falls back to the workspace's own theme when it hasn't picked one of its own.
+  const inheritedThemeRecord = boardThemeRecord ?? workspaceThemeRecord;
+  const { data: runtimeThemes } = api.theme.runtime.useQuery();
 
   return (
     <>
       <ThemeInjector
         themeId={boardThemeId}
-        themeCss={boardThemeRecord?.css}
-        themeVariables={boardThemeRecord?.variables as Record<string, any> | null}
+        extraBuiltInThemes={runtimeThemes as Record<string, any> | undefined}
+        themeCss={inheritedThemeRecord?.css}
+        themeImports={inheritedThemeRecord?.imports}
+        themeVariables={inheritedThemeRecord?.variables as Record<string, any> | null}
+        workspaceOverrides={workspace?.themeOverrides}
         boardOverrides={boardData?.themeOverrides as Record<string, unknown> | null}
         scope="#dashboard-content"
       />

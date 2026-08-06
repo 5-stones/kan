@@ -1,0 +1,1 @@
+ALTER TABLE "theme" ADD COLUMN "imports" varchar(20000);

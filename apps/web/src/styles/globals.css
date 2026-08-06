@@ -6,6 +6,17 @@ html {
   font-size: 14px;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--theme-fonts-heading, inherit);
+}
+
+/* Board/card-level themes scope their variables to #dashboard-content rather
+   than :root (see ThemeInjector), so the body font needs its own inheritance
+   point here too instead of relying solely on the `html` rule in _app.tsx. */
+#dashboard-content {
+  font-family: var(--theme-fonts-body, inherit);
+}
+
 [contenteditable="true"]:empty:before {
   content: attr(placeholder);
   display: block;
