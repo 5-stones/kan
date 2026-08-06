@@ -59,9 +59,10 @@ export const boards = pgTable(
     type: boardTypeEnum("type").notNull().default("regular"),
     isArchived: boolean("isArchived").notNull().default(false),
     sourceBoardId: bigint("sourceBoardId", { mode: "number" }),
-    themeId: varchar("themeId", { length: 255 }).references(() => themes.id, {
-      onDelete: "set null",
-    }),
+    // No FK to `theme.id`: this can also be a built-in/runtime theme key
+    // (e.g. from `KAN_THEMES_DIR`), which has no row in the `theme` table.
+    // Matches `workspace.themeId`, which is unconstrained for the same reason.
+    themeId: varchar("themeId", { length: 255 }),
     themeOverrides: jsonb("themeOverrides"),
     customFieldsConfig: text("customFieldsConfig"),
   },

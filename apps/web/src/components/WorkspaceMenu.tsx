@@ -41,7 +41,7 @@ export default function WorkspaceMenu({
   return (
     <>
       <CommandPallette isOpen={isOpen} onClose={() => setIsOpen(false)} />
-      <Menu as="div" className="relative inline-block w-full pb-3 text-left">
+      <Menu as="div" className="sidebar-workspace-menu relative inline-block w-full pb-3 text-left">
         <div>
           {isLoading ? (
             <div className={twMerge("mb-1 flex", isCollapsed && "md:p-1.5")}>

@@ -89,6 +89,7 @@ export default function SideNavigation({
   const isDarkMode = resolvedTheme === "dark";
 
   const navigation: {
+    slug: string;
     name: string;
     href: string;
     icon?: object;
@@ -96,6 +97,7 @@ export default function SideNavigation({
     keyboardShortcut: KeyboardShortcut;
   }[] = [
     {
+      slug: "boards",
       name: t`Boards`,
       href: "/boards",
       icon: isDarkMode ? boardsIconDark : boardsIconLight,
@@ -108,6 +110,7 @@ export default function SideNavigation({
       },
     },
     {
+      slug: "templates",
       name: t`Templates`,
       href: "/templates",
       icon: isDarkMode ? templatesIconDark : templatesIconLight,
@@ -120,6 +123,7 @@ export default function SideNavigation({
       },
     },
     {
+      slug: "themes",
       name: t`Themes`,
       href: `/${workspace.slug}/themes`,
       reactIcon: (
@@ -137,6 +141,7 @@ export default function SideNavigation({
       },
     },
     {
+      slug: "members",
       name: t`Members`,
       href: "/members",
       icon: isDarkMode ? membersIconDark : membersIconLight,
@@ -149,6 +154,7 @@ export default function SideNavigation({
       },
     },
     {
+      slug: "settings",
       name: t`Settings`,
       href: "/settings",
       icon: isDarkMode ? settingsIconDark : settingsIconLight,
@@ -170,14 +176,14 @@ export default function SideNavigation({
     <>
       <nav
         className={twMerge(
-          "sidebar flex h-full w-64 flex-col justify-between border-r border-light-300 bg-light-100 p-3 dark:border-dark-300 dark:bg-dark-100 md:border-r-0 md:py-0 md:pl-0",
+          "sidebar flex h-full w-64 flex-col justify-between border-r border-border bg-surface p-3 dark:border-borderDark dark:bg-surfaceDark md:border-r-0 md:py-0 md:pl-0",
           isCollapsed && "md:w-auto",
         )}
       >
         <div>
-          <div className="hidden h-[45px] items-center justify-between pb-3 md:flex">
+          <div className="sidebar-header hidden h-[45px] items-center justify-between pb-3 md:flex">
             {!isCollapsed && (
-              <Link href="/" className="block">
+              <Link href="/" className="sidebar-logo block">
                 <h1 className="pl-2 text-[16px] font-bold tracking-tight text-neutral-900 dark:text-dark-1000">
                   kan.bn
                 </h1>
@@ -186,7 +192,7 @@ export default function SideNavigation({
             <Button
               onClick={toggleCollapse}
               className={twMerge(
-                "flex h-8 items-center justify-center rounded-md hover:bg-light-200 dark:hover:bg-dark-200",
+                "sidebar-collapse-toggle flex h-8 items-center justify-center rounded-md hover:bg-light-200 dark:hover:bg-dark-200",
                 isCollapsed ? "w-full" : "w-8",
               )}
             >
@@ -203,12 +209,15 @@ export default function SideNavigation({
               )}
             </Button>
           </div>
-          <div className="mx-1 mb-4 hidden w-auto border-b border-light-300 dark:border-dark-400 md:block" />
+          <div className="sidebar-divider mx-1 mb-4 hidden w-auto border-b border-border dark:border-borderDark md:block" />
 
           <WorkspaceMenu isCollapsed={isCollapsed} />
-          <ul role="list" className="space-y-1">
+          <ul role="list" className="sidebar-nav space-y-1">
             {navigation.map((item) => (
-              <li key={item.name}>
+              <li
+                key={item.slug}
+                className={`sidebar-nav-item sidebar-nav-item-${item.slug}`}
+              >
                 <ReactiveButton
                   href={item.href}
                   current={pathname.includes(item.href)}
@@ -218,13 +227,14 @@ export default function SideNavigation({
                   isCollapsed={isCollapsed}
                   onCloseSideNav={onCloseSideNav}
                   keyboardShortcut={item.keyboardShortcut}
+                  className={`sidebar-nav-link-${item.slug}`}
                 />
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="space-y-2">
+        <div className="sidebar-footer space-y-2">
           <UserMenu
             displayName={user.displayName ?? undefined}
             email={user.email ?? "Email not provided?"}
@@ -236,7 +246,12 @@ export default function SideNavigation({
           {isCloudEnv &&
             !hasActiveSubscription(subscriptions, "pro") &&
             !hasActiveSubscription(subscriptions, "team") && (
-              <div className={twMerge(isCollapsed && "flex justify-center")}>
+              <div
+                className={twMerge(
+                  "sidebar-upgrade-cta",
+                  isCollapsed && "flex justify-center",
+                )}
+              >
                 {isCollapsed ? (
                   <ButtonComponent
                     iconLeft={<HiBolt />}

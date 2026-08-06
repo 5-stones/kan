@@ -60,6 +60,7 @@ export default function Dashboard({
     { id: workspaceThemeId! },
     { enabled: !!workspaceThemeId },
   );
+  const { data: runtimeThemes } = api.theme.runtime.useQuery();
 
   const { data: session, isPending: sessionLoading } = authClient.useSession();
   const { data: user, isLoading: userLoading } = api.user.getUser.useQuery(
@@ -180,7 +181,9 @@ export default function Dashboard({
     <>
       <ThemeInjector
         themeId={workspace?.themeId as string | undefined}
+        extraBuiltInThemes={runtimeThemes as Record<string, any> | undefined}
         themeCss={themeRecord?.css}
+        themeImports={themeRecord?.imports}
         themeVariables={themeRecord?.variables as Record<string, any> | null}
         workspaceOverrides={workspace?.themeOverrides}
       />

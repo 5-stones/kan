@@ -9,6 +9,7 @@ import { api } from "~/utils/api";
 
 const schema = z.object({
   themeId: z.string().optional(),
+  imports: z.string().optional(),
   css: z.string().optional(),
 });
 
@@ -29,6 +30,7 @@ const UpdateWorkspaceThemeForm = ({
   const { showPopup } = usePopup();
 
   const themesQuery = api.theme.list.useQuery({ workspacePublicId }, { enabled: !disabled });
+  const runtimeThemesQuery = api.theme.runtime.useQuery(undefined, { enabled: !disabled });
 
   const {
     register,
@@ -38,6 +40,7 @@ const UpdateWorkspaceThemeForm = ({
     resolver: zodResolver(schema),
     values: {
       themeId: themeId || "",
+      imports: typeof themeOverrides?.imports === "string" ? themeOverrides.imports : "",
       css: typeof themeOverrides?.css === "string" ? themeOverrides.css : "",
     },
   });
@@ -69,7 +72,7 @@ const UpdateWorkspaceThemeForm = ({
     updateWorkspaceTheme.mutate({
       workspacePublicId,
       themeId: data.themeId || null,
-      themeOverrides: { css: data.css },
+      themeOverrides: { css: data.css, imports: data.imports },
     });
   };
 
@@ -83,10 +86,37 @@ const UpdateWorkspaceThemeForm = ({
           className="w-full rounded-md border border-light-300 p-2 text-sm dark:border-dark-300 dark:bg-dark-200"
         >
           <option value="">{t`None / Default`}</option>
-          {themesQuery.data?.map((theme) => (
-            <option key={theme.id} value={theme.id}>{theme.name}</option>
-          ))}
+          {runtimeThemesQuery.data && Object.keys(runtimeThemesQuery.data).length > 0 && (
+            <optgroup label={t`Built-in`}>
+              {Object.entries(runtimeThemesQuery.data).map(([key, theme]) => (
+                <option key={key} value={key}>
+                  {(theme as { name?: string } | null)?.name || key}
+                </option>
+              ))}
+            </optgroup>
+          )}
+          {themesQuery.data && themesQuery.data.length > 0 && (
+            <optgroup label={t`Custom`}>
+              {themesQuery.data.map((theme) => (
+                <option key={theme.id} value={theme.id}>{theme.name}</option>
+              ))}
+            </optgroup>
+          )}
         </select>
+      </div>
+
+      <div>
+        <label className="text-sm font-medium mb-1 block">{t`Font import overrides`}</label>
+        <textarea
+          {...register("imports")}
+          disabled={disabled}
+          rows={2}
+          className="w-full rounded-md border border-light-300 p-2 text-sm font-mono dark:border-dark-300 dark:bg-dark-200"
+          placeholder={`https://fonts.googleapis.com/css2?family=Roboto`}
+        />
+        <p className="mt-1 text-xs text-light-900 dark:text-dark-900">
+          {t`One URL or \`@import\` statement per line.`}
+        </p>
       </div>
 
       <div>

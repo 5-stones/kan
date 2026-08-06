@@ -76,6 +76,8 @@ const themeFormSchema = z.object({
   spacingMd: z.string().optional(),
   spacingLg: z.string().optional(),
   spacingXl: z.string().optional(),
+  // font/CSS imports
+  imports: z.string().optional(),
   // custom css
   css: z.string().optional(),
 });
@@ -353,6 +355,20 @@ function ThemeForm({
         </div>
       </div>
 
+      {/* Font/CSS imports */}
+      <div>
+        <SectionHeading>{t`Font Imports`}</SectionHeading>
+        <textarea
+          {...register("imports")}
+          rows={2}
+          className="w-full rounded-md border border-light-300 p-2 text-sm font-mono dark:border-dark-300 dark:bg-dark-200"
+          placeholder={`https://fonts.googleapis.com/css2?family=Roboto\n@import url("https://use.typekit.net/xxxxxxx.css");`}
+        />
+        <p className="mt-1 text-xs text-light-900 dark:text-dark-900">
+          {t`One URL or \`@import\` statement per line. Kept separate from Custom CSS below because \`@import\` only works as the first rule in a stylesheet.`}
+        </p>
+      </div>
+
       {/* Custom CSS */}
       <div>
         <SectionHeading>{t`Custom CSS`}</SectionHeading>
@@ -392,6 +408,7 @@ export default function ThemesView() {
     { workspacePublicId: workspace.publicId },
     { enabled: !!workspace.publicId },
   );
+  const runtimeThemesQuery = api.theme.runtime.useQuery();
 
   const createTheme = api.theme.create.useMutation({
     onSuccess: async () => {
@@ -447,12 +464,13 @@ export default function ThemesView() {
         <div className="flex flex-col gap-6">
           {creating && (
             <ThemeForm
-              defaultValues={{ name: "", css: "", ...variablesToFormValues({}) }}
+              defaultValues={{ name: "", css: "", imports: "", ...variablesToFormValues({}) }}
               onSubmit={(values) =>
                 createTheme.mutate({
                   workspacePublicId: workspace.publicId,
                   name: values.name,
                   css: values.css,
+                  imports: values.imports,
                   variables: formValuesToVariables(values),
                 })
               }
@@ -473,6 +491,23 @@ export default function ThemesView() {
             </div>
           </div>
 
+          {/* Themes loaded from KAN_THEMES_DIR (read-only, edited via file) */}
+          {Object.entries(runtimeThemesQuery.data ?? {}).map(([key, theme]) => (
+            <div
+              key={key}
+              className="flex items-center justify-between rounded-lg border border-light-300 bg-white p-5 dark:border-dark-300 dark:bg-dark-100"
+            >
+              <div>
+                <h2 className="font-semibold text-light-1100 dark:text-dark-1100">
+                  {(theme as { name?: string } | null)?.name || key}
+                </h2>
+                <p className="mt-0.5 text-sm text-light-900 dark:text-dark-900">
+                  {t`Built-in · loaded from server config, edit its file to make changes`}
+                </p>
+              </div>
+            </div>
+          ))}
+
           {/* Custom themes */}
           {themesQuery.isLoading && (
             <div className="text-sm text-light-900 dark:text-dark-900">{t`Loading…`}</div>
@@ -484,6 +519,7 @@ export default function ThemesView() {
                 defaultValues={{
                   name: theme.name,
                   css: typeof theme.css === "string" ? theme.css : "",
+                  imports: typeof theme.imports === "string" ? theme.imports : "",
                   ...variablesToFormValues(theme.variables),
                 }}
                 onSubmit={(values) =>
@@ -491,6 +527,7 @@ export default function ThemesView() {
                     id: theme.id,
                     name: values.name,
                     css: values.css,
+                    imports: values.imports,
                     variables: formValuesToVariables(values),
                   })
                 }

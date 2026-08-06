@@ -64,7 +64,23 @@ const config = {
         loaders: ["@svgr/webpack"],
         as: "*.js",
       },
+      "*.yml": {
+        loaders: ["yaml-loader"],
+        as: "*.js",
+      },
+      "*.yaml": {
+        loaders: ["yaml-loader"],
+        as: "*.js",
+      },
     },
+  },
+  /** Fallback for tooling (e.g. `next build` without --turbo) that still uses webpack */
+  webpack: (webpackConfig) => {
+    webpackConfig.module.rules.push({
+      test: /\.ya?ml$/,
+      use: "yaml-loader",
+    });
+    return webpackConfig;
   },
   serverExternalPackages: ["pino"],
 

@@ -67,7 +67,7 @@ const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
     <>
       <style jsx global>{`
         html {
-          font-family: ${jakarta.style.fontFamily};
+          font-family: var(--theme-fonts-body, ${jakarta.style.fontFamily});
         }
         body {
           position: relative;
@@ -81,7 +81,7 @@ const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
         />
       )}
       <script src="/__ENV.js" />
-      <main className="font-sans">
+      <main className="font-body">
         <KeyboardShortcutProvider>
           <LinguiProviderWrapper>
             <FontSizeProvider>

@@ -62,7 +62,7 @@ export default function UserMenu({
   const avatarUrl = imageUrl ? getAvatarUrl(imageUrl) : null;
 
   return (
-    <Menu as="div" className="relative inline-block w-full text-left">
+    <Menu as="div" className="user-menu relative inline-block w-full text-left">
       <div>
         {isLoading ? (
           <div className={twMerge(!isCollapsed && "flex")}>
@@ -76,19 +76,19 @@ export default function UserMenu({
           </div>
         ) : (
           <Menu.Button
-            className="flex w-full items-center rounded-md p-1.5 text-neutral-900 hover:bg-light-200 dark:text-dark-900 dark:hover:bg-dark-200 dark:hover:text-dark-1000"
+            className="user-menu-trigger flex w-full items-center rounded-md p-1.5 text-neutral-900 hover:bg-light-200 dark:text-dark-900 dark:hover:bg-dark-200 dark:hover:text-dark-1000"
             title={isCollapsed ? (displayName || email) : undefined}
           >
             {avatarUrl ? (
               <Image
                 src={avatarUrl}
-                className="rounded-full bg-gray-50"
+                className="user-menu-avatar rounded-full bg-gray-50"
                 width={24}
                 height={24}
                 alt=""
               />
             ) : (
-              <span className="inline-block h-6 w-6 overflow-hidden rounded-full bg-light-400 dark:bg-dark-400">
+              <span className="user-menu-avatar inline-block h-6 w-6 overflow-hidden rounded-full bg-light-400 dark:bg-dark-400">
                 <svg
                   className="h-full w-full text-dark-700"
                   fill="currentColor"
@@ -100,7 +100,7 @@ export default function UserMenu({
             )}
             <span
               className={twMerge(
-                "mx-2 truncate text-sm",
+                "user-menu-name mx-2 truncate text-sm",
                 isCollapsed && "md:hidden",
               )}
             >
@@ -121,19 +121,19 @@ export default function UserMenu({
       >
         <Menu.Items
           className={twMerge(
-            "absolute bottom-[40px] z-10 mt-2 origin-top-left rounded-md border border-light-600 bg-light-50 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:border-dark-600 dark:bg-dark-300",
+            "user-menu-dropdown absolute bottom-[40px] z-10 mt-2 origin-top-left rounded-md border border-light-600 bg-light-50 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:border-dark-600 dark:bg-dark-300",
             isCollapsed ? "left-0 w-48" : "left-0 w-full",
           )}
         >
           <div className="flex flex-col text-neutral-900 dark:text-dark-1000">
-            <div className="p-1">
+            <div className="user-menu-theme p-1">
               <div className="flex w-full items-center px-3 py-2 text-left text-xs">
                 <span>{t`Theme`}</span>
               </div>
               <Menu.Item>
                 <button
                   onClick={() => setTheme("system")}
-                  className="flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
+                  className="user-menu-theme-system flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
                 >
                   <span
                     className={twMerge(
@@ -147,7 +147,7 @@ export default function UserMenu({
               <Menu.Item>
                 <button
                   onClick={() => setTheme("dark")}
-                  className="flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
+                  className="user-menu-theme-dark flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
                 >
                   <span
                     className={twMerge(
@@ -161,7 +161,7 @@ export default function UserMenu({
               <Menu.Item>
                 <button
                   onClick={() => setTheme("light")}
-                  className="flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
+                  className="user-menu-theme-light flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
                 >
                   <span
                     className={twMerge(
@@ -182,7 +182,7 @@ export default function UserMenu({
                     }
                     openLegend();
                   }}
-                  className="flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
+                  className="user-menu-shortcuts flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
                 >
                   {t`Shortcuts`}
                 </button>
@@ -193,7 +193,7 @@ export default function UserMenu({
                   target="_blank"
                   rel="noreferrer"
                   onClick={handleLinkClick}
-                  className="flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
+                  className="user-menu-support flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
                 >
                   {t`Support`}
                 </Link>
@@ -204,7 +204,7 @@ export default function UserMenu({
                   target="_blank"
                   rel="noreferrer"
                   onClick={handleLinkClick}
-                  className="flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
+                  className="user-menu-docs flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
                 >
                   {t`Documentation`}
                 </Link>
@@ -212,7 +212,7 @@ export default function UserMenu({
               <Menu.Item>
                 <button
                   onClick={() => handleModalOpen("NEW_FEEDBACK")}
-                  className="flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
+                  className="user-menu-feedback flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
                 >
                   {t`Feedback`}
                 </button>
@@ -222,7 +222,7 @@ export default function UserMenu({
               <Menu.Item>
                 <button
                   onClick={handleLogout}
-                  className="flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
+                  className="user-menu-logout flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
                 >
                   {t`Logout`}
                 </button>
@@ -240,7 +240,7 @@ export default function UserMenu({
                     target="_blank"
                     rel="noreferrer"
                     onClick={handleLinkClick}
-                    className="flex w-full items-center justify-center rounded-[5px] px-3 py-2 text-center text-xs text-light-900 hover:bg-light-200 dark:text-dark-900 dark:hover:bg-dark-400"
+                    className="user-menu-version flex w-full items-center justify-center rounded-[5px] px-3 py-2 text-center text-xs text-light-900 hover:bg-light-200 dark:text-dark-900 dark:hover:bg-dark-400"
                   >
                     Version: {env.NEXT_PUBLIC_APP_VERSION}
                   </Link>
