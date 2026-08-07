@@ -54,7 +54,7 @@ export const workspaces = pgTable(
     weekStartDay: integer("weekStartDay").notNull().default(1),
     cardPrefix: varchar("cardPrefix", { length: 10 }).notNull().default(""),
     themeId: varchar("themeId", { length: 255 }),
-    themeOverrides: jsonb("themeOverrides"),
+    themeOverrides: jsonb("themeOverrides").$type<Record<string, any>>(),
     cardCounter: integer("cardCounter").notNull().default(0),
     createdBy: uuid("createdBy").references(() => users.id, {
       onDelete: "set null",

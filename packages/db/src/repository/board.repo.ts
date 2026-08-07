@@ -631,7 +631,7 @@ export const create = async (
     type?: "regular" | "template";
     sourceBoardId?: number;
     themeId?: string;
-    themeOverrides?: unknown;
+    themeOverrides?: Record<string, any> | null;
   },
 ) => {
   const [result] = await db
@@ -668,7 +668,7 @@ export const update = async (
     boardPublicId: string;
     isArchived?: boolean;
     themeId?: string | null;
-    themeOverrides?: unknown;
+    themeOverrides?: Record<string, any> | null;
     customFieldsConfig?: string | null;
   },
 ) => {
@@ -846,7 +846,7 @@ export const createFromSnapshot = async (
     type: "regular" | "template";
     sourceBoardId?: number;
     themeId?: string;
-    themeOverrides?: unknown;
+    themeOverrides?: Record<string, any> | null;
   },
 ) => {
   return db.transaction(async (tx) => {

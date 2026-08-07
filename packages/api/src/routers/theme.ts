@@ -47,7 +47,7 @@ export const themeRouter = createTRPCRouter({
 
       await assertPermission(ctx.db, userId, workspace.id, "workspace:view");
 
-      return themeRepo.findManyByWorkspace(ctx.db, String(workspace.id));
+      return themeRepo.findManyByWorkspace(ctx.db, workspace.id);
     }),
 
   byId: protectedProcedure
@@ -102,7 +102,7 @@ export const themeRouter = createTRPCRouter({
       await assertPermission(ctx.db, userId, workspace.id, "workspace:edit");
 
       return themeRepo.create(ctx.db, {
-        workspaceId: String(workspace.id),
+        workspaceId: workspace.id,
         name: input.name,
         css: input.css,
         imports: input.imports,

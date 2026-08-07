@@ -63,7 +63,7 @@ export const boards = pgTable(
     // (e.g. from `KAN_THEMES_DIR`), which has no row in the `theme` table.
     // Matches `workspace.themeId`, which is unconstrained for the same reason.
     themeId: varchar("themeId", { length: 255 }),
-    themeOverrides: jsonb("themeOverrides"),
+    themeOverrides: jsonb("themeOverrides").$type<Record<string, any>>(),
     customFieldsConfig: text("customFieldsConfig"),
   },
   (table) => [

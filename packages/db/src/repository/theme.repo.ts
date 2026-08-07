@@ -4,7 +4,7 @@ import type { dbClient } from "@kan/db/client";
 import { themes } from "@kan/db/schema";
 import { generateUID } from "@kan/shared/utils";
 
-export const findManyByWorkspace = async (db: dbClient, workspaceId: string) => {
+export const findManyByWorkspace = async (db: dbClient, workspaceId: number) => {
   return db
     .select()
     .from(themes)
@@ -23,7 +23,7 @@ export const findById = async (db: dbClient, id: string) => {
 export const create = async (
   db: dbClient,
   themeInput: {
-    workspaceId: string;
+    workspaceId: number;
     name: string;
     css?: string;
     imports?: string;

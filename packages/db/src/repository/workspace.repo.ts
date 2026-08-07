@@ -71,7 +71,7 @@ export const create = async (
     description?: string;
     plan?: "free" | "team" | "pro" | "enterprise";
     themeId?: string;
-    themeOverrides?: unknown;
+    themeOverrides?: Record<string, any> | null;
   },
 ) => {
   const [workspace] = await db
@@ -148,7 +148,7 @@ export const update = async (
     showEmailsToMembers?: boolean;
     weekStartDay?: number;
     themeId?: string | null;
-    themeOverrides?: unknown;
+    themeOverrides?: Record<string, any> | null;
   },
 ) => {
   const [result] = await db
