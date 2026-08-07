@@ -48,8 +48,8 @@ catalogs:
       version: 18.3.1
 
 overrides:
-  '@types/minimatch': npm:minimatch@*
   '@types/glob': npm:@types/glob@^8.1.0
+  '@types/minimatch': npm:minimatch@*
 
 importers:
 
@@ -308,6 +308,9 @@ importers:
       vitest:
         specifier: ^3.0.0
         version: 3.2.4(@types/debug@4.1.12)(@types/node@20.19.11)(jiti@1.21.7)(terser@5.44.1)(yaml@2.8.1)
+      yaml-loader:
+        specifier: ^0.9.0
+        version: 0.9.0
 
   packages/api:
     dependencies:
@@ -332,6 +335,9 @@ importers:
       '@trpc/server':
         specifier: 'catalog:'
         version: 11.5.0(typescript@5.9.2)
+      js-yaml:
+        specifier: ^4.1.0
+        version: 4.1.0
       rate-limiter-flexible:
         specifier: ^9.0.1
         version: 9.0.1
@@ -354,6 +360,9 @@ importers:
       '@kan/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
+      '@types/js-yaml':
+        specifier: ^4.0.9
+        version: 4.0.9
       eslint:
         specifier: 'catalog:'
         version: 9.34.0(jiti@2.6.1)
@@ -1553,11 +1562,11 @@ packages:
 
   '@esbuild-kit/core-utils@3.3.2':
     resolution: {integrity: sha512-sPRAnw9CdSsRmEtnsl2WXWdyquogVpB3yZ3dgwJfe8zrOzTsV7cJvmwrKVa+0ma5BoiGJ+BoqkMvawbayKUsqQ==}
-    deprecated: 'Merged into tsx: https://tsx.is'
+    deprecated: 'Merged into tsx: https://tsx.hirok.io'
 
   '@esbuild-kit/esm-loader@2.6.5':
     resolution: {integrity: sha512-FxEMIkJKnodyA1OaCUoEvbYRkoZlLZ4d/eXFu9Fh8CbBBgP5EmZxrfTRyN0qpXZ4vOvqnE5YdRdcrmUUXuU+dA==}
-    deprecated: 'Merged into tsx: https://tsx.is'
+    deprecated: 'Merged into tsx: https://tsx.hirok.io'
 
   '@esbuild/aix-ppc64@0.19.12':
     resolution: {integrity: sha512-bmoCYyWdEL3wDQIVbcyzRyeKLgk2WtWLTWz1ZIAZF/EGbNOwSA6ew3PftJ1PqMiOOGu0OyFMzG53L0zqIpPeNA==}
@@ -4816,10 +4825,6 @@ packages:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
     engines: {node: '>=10'}
 
-  chalk@5.6.0:
-    resolution: {integrity: sha512-46QrSQFyVSEyYAgQ22hQ+zDa60YHA4fBstHmtSApj1Y5vKtG27fWowW03jCk5KcbXEWPZUIR894aARCA/G1kfQ==}
-    engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
-
   chalk@5.6.2:
     resolution: {integrity: sha512-7NzBL0rN6fMUW+f7A6Io4h40qQlG+xGmtMxfbnH/K7TAtt8JQWVQK+6g0UXKMeVJoyV5EkkNsErQ8pVD3bLHbA==}
     engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
@@ -6376,6 +6381,9 @@ packages:
   jackspeak@4.1.1:
     resolution: {integrity: sha512-zptv57P3GpL+O0I7VdMJNBZCu+BPHVQUk55Ft8/QCJjTVxrnJHuVuX/0Bl2A6/+2oyR/ZMEuFKwmzqqZ/U5nPQ==}
     engines: {node: 20 || >=22}
+
+  javascript-stringify@2.1.0:
+    resolution: {integrity: sha512-JVAfqNPTvNq3sB/VHQJAFxN/sPgKnsKrCwyRt15zwNCdrMMJDdcEOdubuy+DuJYYdm0ox1J4uzEuYKkN+9yhVg==}
 
   jest-get-type@29.6.3:
     resolution: {integrity: sha512-zrteXnqYxfQh7l5FHyL38jL39di8H8rHoecLH3JNxH3BwOrBsNeabdap5e0I23lD4HHI8W5VFBZqG4Eaq5LNcw==}
@@ -8996,6 +9004,10 @@ packages:
   yallist@3.1.1:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}
 
+  yaml-loader@0.9.0:
+    resolution: {integrity: sha512-N0bPfDR42qCruELfmpF6Q8XnDu1elTULGjvVn7u6rsfDa8WhlmJbjXQRh+x5TGmpOqw8R9qfiUgc3aKP+8Hd4w==}
+    engines: {node: '>= 20'}
+
   yaml@2.8.1:
     resolution: {integrity: sha512-lcYcMxX2PO9XMGvAJkJ3OsNMw+/7FKes7/hgerGUYWIoWu5j/+YQqcZr5JnPZWzOsEBgMbSbiSTn/dv/69Mkpw==}
     engines: {node: '>= 14.6'}
@@ -11327,7 +11339,7 @@ snapshots:
       '@mintlify/previewing': 3.1.93(@mintlify/models@0.0.29(openapi-types@12.1.3))(@mintlify/validation@0.1.63(@mintlify/models@0.0.29(openapi-types@12.1.3))(openapi-types@12.1.3))
       '@mintlify/validation': 0.1.63(@mintlify/models@0.0.29(openapi-types@12.1.3))(openapi-types@12.1.3)
       axios: 1.11.0
-      chalk: 5.6.0
+      chalk: 5.6.2
       detect-port: 1.6.1
       favicons: 7.2.0
       fs-extra: 11.3.1
@@ -11519,7 +11531,7 @@ snapshots:
 
   '@novu/api@3.11.0':
     dependencies:
-      zod: 3.25.76
+      zod: 4.1.13
 
   '@octokit/auth-token@3.0.4': {}
 
@@ -13601,8 +13613,6 @@ snapshots:
       ansi-styles: 4.3.0
       supports-color: 7.2.0
 
-  chalk@5.6.0: {}
-
   chalk@5.6.2: {}
 
   change-case@3.1.0:
@@ -15447,6 +15457,8 @@ snapshots:
   jackspeak@4.1.1:
     dependencies:
       '@isaacs/cliui': 8.0.2
+
+  javascript-stringify@2.1.0: {}
 
   jest-get-type@29.6.3: {}
 
@@ -18888,6 +18900,11 @@ snapshots:
   y18n@5.0.8: {}
 
   yallist@3.1.1: {}
+
+  yaml-loader@0.9.0:
+    dependencies:
+      javascript-stringify: 2.1.0
+      yaml: 2.8.1
 
   yaml@2.8.1: {}
 
