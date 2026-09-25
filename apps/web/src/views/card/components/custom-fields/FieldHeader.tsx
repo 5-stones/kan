@@ -28,15 +28,16 @@ export function FieldHeader({
 
   return (
     <div
-      className="group mb-2 flex w-full cursor-pointer items-center justify-between gap-1 text-left text-sm font-semibold text-neutral-800 dark:text-dark-1000"
+      className="kan-field-header group mb-2 flex w-full cursor-pointer items-center justify-between gap-1 text-left text-sm font-semibold text-neutral-800 dark:text-dark-1000"
       onClick={onToggle}
+      data-collapsed={collapsed ? "true" : "false"}
     >
       <div className="flex items-center gap-1">
         {onToggle && (
           collapsed ? (
-            <HiChevronRight className="h-4 w-4 shrink-0 text-neutral-400" />
+            <HiChevronRight className="kan-field-header-chevron h-4 w-4 shrink-0 text-neutral-400" />
           ) : (
-            <HiChevronDown className="h-4 w-4 shrink-0 text-neutral-400" />
+            <HiChevronDown className="kan-field-header-chevron h-4 w-4 shrink-0 text-neutral-400" />
           )
         )}
         {title}
@@ -45,7 +46,7 @@ export function FieldHeader({
         <button
           type="button"
           onClick={handlePlusClick}
-          className="rounded p-1 text-neutral-400 transition-all hover:bg-light-200 hover:text-neutral-700 dark:text-dark-700 dark:hover:bg-dark-300"
+          className="kan-field-header-add rounded p-1 text-neutral-400 transition-all hover:bg-light-200 hover:text-neutral-700 dark:text-dark-700 dark:hover:bg-dark-300"
         >
           <HiPlus className="h-4 w-4" />
         </button>

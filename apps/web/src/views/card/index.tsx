@@ -152,7 +152,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
 
   return (
     <div className="card-detail-panel h-full w-[360px] border-l-[1px] border-border bg-background p-8 text-textMuted dark:border-borderDark dark:bg-backgroundDark dark:text-textMutedDark">
-      <div className="mb-4 flex w-full flex-row pt-[18px]">
+      <div className="card-detail-field card-detail-field-list mb-4 flex w-full flex-row pt-[18px]">
         <p className="my-2 w-[100px] shrink-0 text-sm font-medium">
           {listLabel}
         </p>
@@ -164,7 +164,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
           placeholder={listPlaceholder}
         />
       </div>
-      <div className="mb-4 flex w-full flex-row">
+      <div className="card-detail-field card-detail-field-labels mb-4 flex w-full flex-row">
         <p className="my-2 w-[100px] shrink-0 text-sm font-medium">
           {t`Labels`}
         </p>
@@ -177,7 +177,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
         />
       </div>
       {!isTemplate && (
-        <div className="mb-4 flex w-full flex-row">
+        <div className="card-detail-field card-detail-field-members mb-4 flex w-full flex-row">
           <p className="my-2 w-[100px] shrink-0 text-sm font-medium">
             {t`Members`}
           </p>
@@ -190,7 +190,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
           />
         </div>
       )}
-      <div className="mb-4 flex w-full flex-row">
+      <div className="card-detail-field card-detail-field-dueDate mb-4 flex w-full flex-row">
         <p className="my-2 w-[100px] shrink-0 text-sm font-medium">
           {dueDateLabel}
         </p>
@@ -203,7 +203,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
         />
       </div>
       {customFieldsConfig && cardId && (
-        <div className="mt-2">
+        <div className="card-detail-custom-fields mt-2">
           <CustomFields
             panel="sidebar"
             cardPublicId={cardId}
@@ -584,7 +584,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                       )}
                     </>
                   )}
-                  <div className="border-t-[1px] border-border pt-12 dark:border-borderDark">
+                  <div className="card-detail-activity border-t-[1px] border-border pt-12 dark:border-borderDark">
                     <h2 className="text-md pb-4 font-medium text-text dark:text-textDark">
                       {t`Activity`}
                     </h2>

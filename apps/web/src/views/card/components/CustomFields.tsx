@@ -68,7 +68,7 @@ export function CustomFields({
     if (!sections.length && !mainFields.length) return null;
 
     return (
-      <div className="flex flex-col gap-5 pb-4">
+      <div className="kan-custom-sections flex flex-col gap-5 pb-4">
         {mainFields.length > 0 && (
           <div className="kan-custom-section kan-section-main flex flex-col gap-3 border-t border-light-200 pt-4 dark:border-dark-300">
             {mainFields.map(({ key, field }) => (
@@ -203,11 +203,11 @@ function CardDetailField({
     return (
       <div
         key={fieldKey}
-        className={`flex ${isSidebar ? "flex-row mb-4" : "flex-col"}`}
+        className={`kan-field-row kan-field-row-${fieldKey} flex ${isSidebar ? "flex-row mb-4" : "flex-col"}`}
       >
         {!field.hideLabel && (
           <label
-            className={`${
+            className={`kan-field-label ${
               isSidebar
                 ? "my-2 w-[100px] shrink-0 text-sm font-medium"
                 : "mb-2 block text-xs font-medium text-[rgb(126,126,126)] dark:text-dark-800"
@@ -239,7 +239,10 @@ function CardDetailField({
   }
 
   return (
-    <div key={fieldKey} className="flex flex-col">
+    <div
+      key={fieldKey}
+      className={`kan-field-row kan-field-row-${fieldKey} flex flex-col`}
+    >
       <FieldHeader
         title={field.title}
         onToggle={handleToggle}
@@ -343,7 +346,7 @@ function RegularSection({
       />
 
       {!collapsed && (
-        <div className="flex flex-col gap-3 pl-5 pt-2">
+        <div className="kan-section-fields flex flex-col gap-3 pl-5 pt-2">
           {Object.entries(fields).map(([fieldKey, field]) => (
             <CardDetailField
               key={fieldKey}
@@ -425,7 +428,7 @@ function TimeseriesSection({
       />
 
       {!collapsed && (
-        <div className="pl-5 pt-2">
+        <div className="kan-section-fields pl-5 pt-2">
           <TimeseriesField
             sectionKey={sectionKey}
             field={pseudoField}
