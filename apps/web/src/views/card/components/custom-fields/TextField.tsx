@@ -130,6 +130,8 @@ export function TextField({
             onKeyUp={(e) => commit(e.currentTarget.value)}
             onBlur={handleBlur}
             disabled={!canEdit}
+            // exposes the filled portion of the track (0-100) for styling
+            style={{ "--range-pct": rangePercent(draft, field) } as React.CSSProperties}
             className="flex-1 disabled:opacity-60"
           />
           <span className="w-6 text-right text-sm tabular-nums text-neutral-900 dark:text-dark-1000">
@@ -174,4 +176,11 @@ export function TextField({
       )}
     </div>
   );
+}
+
+function rangePercent(value: string, field: CustomFieldDef) {
+  const min = Number(field.min ?? 0);
+  const max = Number(field.max ?? 100);
+  if (value === "" || max <= min) return 0;
+  return Math.min(100, Math.max(0, ((Number(value) - min) / (max - min)) * 100));
 }

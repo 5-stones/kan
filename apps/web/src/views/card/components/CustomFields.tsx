@@ -1,6 +1,10 @@
 import { useState } from "react";
 
-import type { CustomFieldsConfig, CustomTopLevelSection } from "@kan/shared";
+import type {
+  CustomFieldDef,
+  CustomFieldsConfig,
+  CustomTopLevelSection,
+} from "@kan/shared";
 import {
   getCustomSections,
   getSidebarCustomFields,
@@ -199,6 +203,31 @@ function CardDetailField({
     }
   };
 
+  if (!isComplex && field.inline && !isSidebar) {
+    return (
+      <div
+        key={fieldKey}
+        className={`kan-field-row kan-field-row-${fieldKey} kan-field-row-inline flex flex-row items-baseline gap-1`}
+      >
+        <label className="kan-field-label shrink-0 text-xs font-medium text-[rgb(126,126,126)] dark:text-dark-800">
+          {field.title}:
+        </label>
+        <div className="min-w-0 flex-1">
+          <FieldRenderer
+            fieldKey={fieldKey}
+            field={field}
+            value={value}
+            onChange={onChange}
+            workspaceMembers={workspaceMembers}
+            canEdit={canEdit}
+            boardPublicId={boardPublicId}
+            sectionKey={sectionKey}
+          />
+        </div>
+      </div>
+    );
+  }
+
   if (!isComplex) {
     return (
       <div
@@ -276,6 +305,22 @@ function CardDetailField({
 
 // ─── Section sub-components ───────────────────────────────────────────────────
 
+/**
+ * Groups each field with the `inline` fields that directly follow it.
+ */
+function groupInlineFields(fields: Record<string, CustomFieldDef>) {
+  const groups: { key: string; fields: [string, CustomFieldDef][] }[] = [];
+  for (const entry of Object.entries(fields)) {
+    const last = groups[groups.length - 1];
+    if (entry[1].inline && last) {
+      last.fields.push(entry);
+    } else {
+      groups.push({ key: entry[0], fields: [entry] });
+    }
+  }
+  return groups;
+}
+
 interface SectionProps {
   sectionKey: string;
   section: CustomTopLevelSection;
@@ -347,19 +392,32 @@ function RegularSection({
 
       {!collapsed && (
         <div className="kan-section-fields flex flex-col gap-3 pl-5 pt-2">
-          {Object.entries(fields).map(([fieldKey, field]) => (
-            <CardDetailField
-              key={fieldKey}
-              fieldKey={fieldKey}
-              field={field}
-              value={sectionData[fieldKey]}
-              onChange={(v) => onFieldChange(sectionKey, fieldKey, v)}
-              workspaceMembers={workspaceMembers}
-              canEdit={canEdit}
-              boardPublicId={boardPublicId}
-              sectionKey={sectionKey}
-            />
-          ))}
+          {groupInlineFields(fields).map(({ key, fields: group }) => {
+            const rows = group.map(([fieldKey, field]) => (
+              <CardDetailField
+                key={fieldKey}
+                fieldKey={fieldKey}
+                field={field}
+                value={sectionData[fieldKey]}
+                onChange={(v) => onFieldChange(sectionKey, fieldKey, v)}
+                workspaceMembers={workspaceMembers}
+                canEdit={canEdit}
+                boardPublicId={boardPublicId}
+                sectionKey={sectionKey}
+              />
+            ));
+            // a field followed by inline fields shares a single layout cell with them
+            return group.length > 1 ? (
+              <div
+                key={key}
+                className={`kan-field-group kan-field-group-${key} flex flex-col`}
+              >
+                {rows}
+              </div>
+            ) : (
+              rows
+            );
+          })}
         </div>
       )}
     </div>

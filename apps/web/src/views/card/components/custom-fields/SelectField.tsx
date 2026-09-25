@@ -209,7 +209,7 @@ export function SelectField({
           checked={checked}
           disabled={!canEdit}
           onChange={(e) => onToggle(e.target.checked)}
-          className="rounded"
+          className={style === "radio" ? "rounded-full" : "rounded"}
         />
         {otherLabel}
       </label>
@@ -244,7 +244,7 @@ export function SelectField({
   if (isCheckboxOrRadio && (alwaysExpanded || embedded)) {
     return (
       <div
-        className={`kan-custom-field kan-field-${fieldKey} flex flex-col gap-1`}
+        className={`kan-custom-field kan-field-${fieldKey} kan-select-${style} flex flex-col gap-1`}
         data-field-key={fieldKey}
       >
         {Object.entries(options).map(([key, label]) => (
@@ -259,7 +259,7 @@ export function SelectField({
               checked={selectedValues.includes(key)}
               disabled={!canEdit}
               onChange={(e) => handleImmediateChange(key, e.target.checked)}
-              className="rounded"
+              className={style === "radio" ? "rounded-full" : "rounded"}
             />
             {label}
           </label>
@@ -293,7 +293,7 @@ export function SelectField({
 
     return (
       <div
-        className={`kan-custom-field kan-field-${fieldKey}`}
+        className={`kan-custom-field kan-field-${fieldKey} kan-select-${style}`}
         data-field-key={fieldKey}
       >
         <input
@@ -321,7 +321,7 @@ export function SelectField({
   if (embedded && style === "dropdown") {
     return (
       <div
-        className={`kan-custom-field kan-field-${fieldKey}`}
+        className={`kan-custom-field kan-field-${fieldKey} kan-select-${style}`}
         data-field-key={fieldKey}
       >
         <select
@@ -352,7 +352,7 @@ export function SelectField({
   if (!isEditing) {
     return (
       <div
-        className={`kan-custom-field kan-field-${fieldKey} group flex items-center justify-between gap-2 rounded cursor-pointer ${
+        className={`kan-custom-field kan-field-${fieldKey} kan-select-${style} group flex items-center justify-between gap-2 rounded cursor-pointer ${
           isSidebar 
             ? "py-1 pl-2 text-xs border border-light-50 dark:border-dark-50" 
             : "px-2 py-1 -mx-2 text-sm"
@@ -379,7 +379,7 @@ export function SelectField({
   // ── Edit mode ───────────────────────────────────────────────────────────────
   return (
     <div
-      className={`kan-custom-field kan-field-${fieldKey} flex flex-col gap-2`}
+      className={`kan-custom-field kan-field-${fieldKey} kan-select-${style} flex flex-col gap-2`}
       data-field-key={fieldKey}
     >
       {style === "dropdown" ? (
@@ -425,7 +425,7 @@ export function SelectField({
                 value={key}
                 checked={draft.includes(key)}
                 onChange={(e) => handleDraftCheckboxChange(key, e.target.checked)}
-                className="rounded"
+                className={style === "radio" ? "rounded-full" : "rounded"}
               />
               {label}
             </label>

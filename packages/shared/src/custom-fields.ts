@@ -51,6 +51,8 @@ export interface CustomFieldDef {
   style?: "checkbox" | "radio" | "dropdown" | "autofill";
   alwaysExpanded?: boolean;
   hideLabel?: boolean;
+  /** section fields: render compactly as "label: value" beneath the previous field, sharing its layout cell */
+  inline?: boolean;
   placeholder?: string;
   description?: string;
   autofillLimit?: number;
@@ -74,6 +76,7 @@ export const CustomFieldDefSchema: z.ZodType<CustomFieldDef> = z.lazy(() =>
     style: z.enum(["checkbox", "radio", "dropdown", "autofill"]).optional(),
     alwaysExpanded: z.boolean().optional(),
     hideLabel: z.boolean().optional(),
+    inline: z.boolean().optional(),
     placeholder: z.string().optional(),
     description: z.string().optional(),
     autofillLimit: z.number().optional(),
