@@ -56,6 +56,20 @@ export function createDatabaseHooks(db: dbClient) {
           return Promise.resolve(true);
         },
         async after(user: BetterAuthUser, _context: unknown) {
+          // Users whose email is already verified (e.g. social/OIDC sign-up) join the
+          // workspaces they were invited to. Unverified sign-ups accept through the
+          // invitation (magic link) email instead, which proves they own the address.
+          if (user.emailVerified) {
+            try {
+              await memberRepo.acceptAllPendingInvites(db, {
+                email: user.email,
+                userId: user.id,
+              });
+            } catch (error) {
+              log.error({ err: error, userId: user.id }, "Failed to accept pending invites");
+            }
+          }
+
           let avatarKey = user.image;
           const storageDomain = process.env.NEXT_PUBLIC_STORAGE_DOMAIN;
           if (
@@ -183,13 +197,19 @@ export function createMiddlewareHooks(db: dbClient) {
         (ctx.query?.callbackURL as string | undefined)?.includes("type=invite")
       ) {
         const userId = ctx.context.newSession?.session.userId;
+        const userEmail = ctx.context.newSession?.user.email;
         const callbackURL = ctx.query?.callbackURL as string | undefined;
         const memberPublicId = callbackURL?.split("memberPublicId=")[1];
 
         if (userId && memberPublicId) {
           const member = await memberRepo.getByPublicId(db, memberPublicId);
 
-          if (member?.id) {
+          // Only accept an invitation addressed to the email that just signed in
+          if (
+            member?.id &&
+            member.status === "invited" &&
+            member.email.toLowerCase() === userEmail?.toLowerCase()
+          ) {
             await memberRepo.acceptInvite(db, {
               memberId: member.id,
               userId,
