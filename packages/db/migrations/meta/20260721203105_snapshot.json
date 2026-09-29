@@ -1,6 +1,6 @@
 {
   "id": "5160b94c-69aa-4e65-89b5-486a4079b383",
-  "prevId": "d769cb85-3b44-4375-bc1c-d97f866f8748",
+  "prevId": "43cdbc0e-4922-4ad3-86e3-c7051a80a604",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -509,6 +509,12 @@
         "themeOverrides": {
           "name": "themeOverrides",
           "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "customFieldsConfig": {
+          "name": "customFieldsConfig",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         }
@@ -1316,6 +1322,12 @@
         "dueDate": {
           "name": "dueDate",
           "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "customData": {
+          "name": "customData",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         }

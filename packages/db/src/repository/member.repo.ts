@@ -1,4 +1,4 @@
-import { and, count, eq, isNull, ne, or } from "drizzle-orm";
+import { and, count, eq, isNull, ne, or, sql } from "drizzle-orm";
 
 import type { dbClient } from "@kan/db/client";
 import type { MemberRole, MemberStatus } from "@kan/db/schema";
@@ -121,11 +121,29 @@ export const getByEmailAndStatus = async (
 ) => {
   return db.query.workspaceMembers.findFirst({
     where: and(
-      eq(workspaceMembers.email, email),
+      sql`lower(${workspaceMembers.email}) = lower(${email})`,
       eq(workspaceMembers.status, status),
       isNull(workspaceMembers.deletedAt),
     ),
   });
+};
+
+/** Activates every pending invitation for an email address (case-insensitive). */
+export const acceptAllPendingInvites = async (
+  db: dbClient,
+  args: { email: string; userId: string },
+) => {
+  return db
+    .update(workspaceMembers)
+    .set({ status: "active", userId: args.userId })
+    .where(
+      and(
+        sql`lower(${workspaceMembers.email}) = lower(${args.email})`,
+        eq(workspaceMembers.status, "invited"),
+        isNull(workspaceMembers.deletedAt),
+      ),
+    )
+    .returning({ id: workspaceMembers.id });
 };
 
 export const acceptInvite = async (
