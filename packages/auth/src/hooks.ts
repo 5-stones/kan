@@ -183,13 +183,19 @@ export function createMiddlewareHooks(db: dbClient) {
         (ctx.query?.callbackURL as string | undefined)?.includes("type=invite")
       ) {
         const userId = ctx.context.newSession?.session.userId;
+        const userEmail = ctx.context.newSession?.user.email;
         const callbackURL = ctx.query?.callbackURL as string | undefined;
         const memberPublicId = callbackURL?.split("memberPublicId=")[1];
 
         if (userId && memberPublicId) {
           const member = await memberRepo.getByPublicId(db, memberPublicId);
 
-          if (member?.id) {
+          // Only accept an invitation addressed to the email that just signed in
+          if (
+            member?.id &&
+            member.status === "invited" &&
+            member.email.toLowerCase() === userEmail?.toLowerCase()
+          ) {
             await memberRepo.acceptInvite(db, {
               memberId: member.id,
               userId,
