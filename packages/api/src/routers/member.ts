@@ -233,6 +233,9 @@ export const memberRouter = createTRPCRouter({
         });
       }
 
+      // Members with member:remove can't remove members above them in the role hierarchy
+      await assertCanManageMember(ctx.db, userId, workspace.id, member.id);
+
       const deletedMember = await memberRepo.softDelete(ctx.db, {
         memberId: member.id,
         deletedAt: new Date(),
