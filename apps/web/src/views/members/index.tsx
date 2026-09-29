@@ -46,7 +46,7 @@ export default function MembersPage() {
 
   const { data: session } = authClient.useSession();
 
-  const { canEditMember } = usePermissions();
+  const { canEditMember, canInviteMember } = usePermissions();
 
   const utils = api.useUtils();
 
@@ -325,7 +325,7 @@ export default function MembersPage() {
             <Button
               onClick={() => openModal("INVITE_MEMBER")}
               iconLeft={<HiOutlinePlusSmall className="h-4 w-4" />}
-              disabled={workspace.role !== "admin"}
+              disabled={!canInviteMember}
             >
               {t`Invite`}
             </Button>
