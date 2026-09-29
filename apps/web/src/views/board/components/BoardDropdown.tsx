@@ -17,6 +17,7 @@ import { usePermissions } from "~/hooks/usePermissions";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { api } from "~/utils/api";
+import { useExportContactsItem } from "../../coraggio/useExportContactsItem"; // coraggio
 
 export default function BoardDropdown({
   isTemplate,
@@ -39,6 +40,7 @@ export default function BoardDropdown({
   const { canEditBoard, canDeleteBoard, canCreateBoard, canArchiveBoard } =
     usePermissions();
   const utils = api.useUtils();
+  const exportContactsItem = useExportContactsItem(boardPublicId); // coraggio
 
   const updateBoard = api.board.update.useMutation({
     onSuccess: (_data, variables) => {
@@ -151,6 +153,7 @@ export default function BoardDropdown({
         },
       ]
       : []),
+    ...(!isTemplate ? [exportContactsItem] : []), // coraggio
     {
       label: isFavorite
         ? t`Remove from favorites`

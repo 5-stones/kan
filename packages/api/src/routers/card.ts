@@ -23,6 +23,7 @@ import {
 } from "../schemas";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { mergeActivities } from "../utils/activities";
+import { sendAssignmentEmails } from "../utils/coraggio/assignment"; // coraggio
 import { sendMentionEmails } from "../utils/notifications";
 import {
   assertCanDelete,
@@ -175,6 +176,14 @@ export const cardRouter = createTRPCRouter({
         }));
 
         await cardActivityRepo.bulkCreate(ctx.db, cardActivitesInsert);
+
+        // coraggio: email members assigned by someone else
+        void sendAssignmentEmails({
+          db: ctx.db,
+          cardPublicId: newCard.publicId,
+          workspaceMemberIds: cardMembers.map((m) => m.workspaceMemberId),
+          actorUserId: userId,
+        });
       }
 
       if (input.description) {
@@ -648,6 +657,14 @@ export const cardRouter = createTRPCRouter({
         cardId: card.id,
         workspaceMemberId: member.id,
         createdBy: userId,
+      });
+
+      // coraggio: email the member if someone else assigned them
+      void sendAssignmentEmails({
+        db: ctx.db,
+        cardPublicId: input.cardPublicId,
+        workspaceMemberIds: [member.id],
+        actorUserId: userId,
       });
 
       return { newMember: true };

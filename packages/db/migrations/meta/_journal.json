@@ -274,6 +274,13 @@
       "when": 1786034676073,
       "tag": "20260806164436_drop_board_theme_fk",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1790698839583,
+      "tag": "20260929162039_CoraggioMvp",
+      "breakpoints": true
     }
   ]
 }

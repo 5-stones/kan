@@ -8,6 +8,7 @@ import {
   HiOutlineTrash,
   HiOutlineUserGroup,
   HiOutlineArrowRightCircle,
+  HiOutlineStar,
 } from "react-icons/hi2";
 
 export type CardContextMenuAction =
@@ -17,7 +18,8 @@ export type CardContextMenuAction =
   | "dueDate"
   | "copyLink"
   | "duplicate"
-  | "delete";
+  | "delete"
+  | "star"; // coraggio
 
 interface CardContextMenuProps {
   x: number;
@@ -25,6 +27,7 @@ interface CardContextMenuProps {
   onClose: () => void;
   onAction: (action: CardContextMenuAction) => void;
   canEdit: boolean;
+  starred?: boolean; // coraggio: when set, shows a Star/Unstar item
 }
 
 const MENU_ITEMS: {
@@ -83,6 +86,7 @@ export function CardContextMenu({
   onClose,
   onAction,
   canEdit,
+  starred,
 }: CardContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -104,6 +108,15 @@ export function CardContextMenu({
   }, [onClose]);
 
   const items = MENU_ITEMS.filter((item) => !item.requiresEdit || canEdit);
+  // coraggio: star/unstar contact
+  if (starred !== undefined && canEdit) {
+    items.unshift({
+      action: "star",
+      label: starred ? t`Unstar contact` : t`Star contact`,
+      icon: <HiOutlineStar className="h-4 w-4 shrink-0" />,
+      requiresEdit: true,
+    });
+  }
 
   return (
     <div

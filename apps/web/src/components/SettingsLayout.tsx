@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import {
   HiChevronDown,
   HiOutlineBanknotes,
+  HiOutlineBell,
   HiOutlineBolt,
   HiOutlineCodeBracketSquare,
   HiOutlineRectangleGroup,
@@ -39,6 +40,13 @@ export function SettingsLayout({ children, currentTab }: SettingsLayoutProps) {
       key: "account",
       icon: <HiOutlineUser />,
       label: t`Account`,
+      condition: true,
+    },
+    {
+      // coraggio: email notification preferences
+      key: "notifications",
+      icon: <HiOutlineBell />,
+      label: t`Notifications`,
       condition: true,
     },
     {

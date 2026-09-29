@@ -31,6 +31,7 @@ import UserMenu from "~/components/UserMenu";
 import WorkspaceMenu from "~/components/WorkspaceMenu";
 import { useWorkspace } from "~/providers/workspace";
 import { api } from "~/utils/api";
+import { useAdminNavItems } from "~/views/coraggio/admin/useAdminNavItem"; // coraggio
 
 interface SideNavigationProps {
   user: UserType;
@@ -87,6 +88,7 @@ export default function SideNavigation({
   const isCloudEnv = env("NEXT_PUBLIC_KAN_ENV") === "cloud";
 
   const isDarkMode = resolvedTheme === "dark";
+  const adminNavItems = useAdminNavItems(); // coraggio
 
   const navigation: {
     slug: string;
@@ -166,6 +168,7 @@ export default function SideNavigation({
         description: t`Go to settings`,
       },
     },
+    ...adminNavItems, // coraggio
   ];
 
   const toggleCollapse = () => {

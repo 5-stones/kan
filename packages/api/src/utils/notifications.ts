@@ -12,6 +12,8 @@ import * as workspaceRepo from "@kan/db/repository/workspace.repo";
 import { sendEmail } from "@kan/email";
 import { parseMentionsFromHTML } from "@kan/shared/utils";
 
+import { canEmailUser } from "./coraggio/emailPrefs"; // coraggio
+
 /**
  * Sends mention notification emails to mentioned members
  * Only sends emails for new mentions (checks notification table to avoid duplicates)
@@ -84,6 +86,9 @@ export async function sendMentionEmails({
 
         // Skip pending members (no userId) - they can be mentioned but won't receive emails
         if (!userId || !email) return;
+
+        // coraggio: respect the user's global email opt-out
+        if (!(await canEmailUser(db, userId))) return;
 
         try {
           // Check if notification already exists for this mention

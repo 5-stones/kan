@@ -56,6 +56,12 @@ import { NewCardForm } from "./components/NewCardForm";
 import { NewListForm } from "./components/NewListForm";
 import { NewTemplateForm } from "./components/NewTemplateForm";
 import UpdateBoardSlugButton from "./components/UpdateBoardSlugButton";
+// coraggio: contact search, follow-up sort, star
+import { isCardStarred } from "@kan/shared";
+import { FollowUpSortToggle } from "../coraggio/FollowUpSortToggle";
+import { HeaderSearch } from "../coraggio/HeaderSearch";
+import { useFollowUpSort } from "../coraggio/useFollowUpSort";
+import { useToggleStar } from "../coraggio/useToggleStar";
 import { UpdateBoardSlugForm } from "./components/UpdateBoardSlugForm";
 import { UpdateBoardThemeForm } from "./components/UpdateBoardThemeForm";
 import { CustomFieldsConfigForm } from "./components/CustomFieldsConfigForm";
@@ -105,6 +111,9 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
     : null;
 
   const updateBoard = api.board.update.useMutation();
+
+  const followUpSort = useFollowUpSort(boardId); // coraggio
+  const toggleStar = useToggleStar(); // coraggio
 
   const { register, handleSubmit, setValue } = useForm<UpdateBoardInput>({
     values: {
@@ -313,6 +322,17 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
     const cardPublicId = contextMenu?.cardPublicId;
     if (!cardPublicId) return;
     setContextMenu(null);
+    // coraggio: star/unstar contact
+    if (action === "star") {
+      const card = boardData?.lists
+        .flatMap((list) => list.cards)
+        .find((c) => c.publicId === cardPublicId);
+      toggleStar.setStarred(
+        cardPublicId,
+        !isCardStarred(card?.customData as Record<string, unknown> | null),
+      );
+      return;
+    }
     if (action === "copyLink") {
       const path = isTemplate
         ? `/templates/${boardId}/cards/${cardPublicId}`
@@ -360,7 +380,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
   };
 
   const onDragEnd = ({
-    source: _source,
+    source,
     destination,
     draggableId,
     type,
@@ -377,11 +397,19 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
     }
 
     if (type === "CARD" && canEditCard) {
+      // coraggio: while sorted by follow-up date, only moves between columns apply
+      const index = followUpSort.adjustCardDrop(
+        { source, destination },
+        boardData?.lists.find((l) => l.publicId === destination.droppableId)
+          ?.cards.length ?? 0,
+      );
+      if (index === null) return;
+
       updateCardMutation.mutate({
         cardPublicId: draggableId,
 
         listPublicId: destination.droppableId,
-        index: destination.index,
+        index,
       });
     }
   };
@@ -640,6 +668,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
             )}
             {!isTemplate && (
               <>
+                <HeaderSearch /> {/* coraggio */}
                 <UpdateBoardSlugButton
                   handleOnClick={() => openModal("UPDATE_BOARD_SLUG")}
                   isLoading={isLoading}
@@ -668,30 +697,32 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                     isLoading={!boardData}
                   />
                 )}
+                <FollowUpSortToggle
+                  enabled={followUpSort.enabled}
+                  onToggle={followUpSort.toggle}
+                  disabled={!boardData}
+                />
               </>
             )}
-            <Tooltip
-              content={
-                !canCreateList
-                  ? t`You don't have permission`
-                  : createListShortcutTooltipContent
-              }
-            >
-              <Button
-                iconLeft={
-                  <HiOutlinePlusSmall
-                    className="-mr-0.5 h-5 w-5 text-primary group-hover:text-secondary"
-                    aria-hidden="true"
-                  />
-                }
-                onClick={() => {
-                  if (boardId && canCreateList) openNewListForm(boardId);
-                }}
-                disabled={!boardData || !canCreateList}
-              >
-                {t`New list`}
-              </Button>
-            </Tooltip>
+            {/* coraggio: hide (not just disable) when lists can't be created */}
+            {canCreateList && (
+              <Tooltip content={createListShortcutTooltipContent}>
+                <Button
+                  iconLeft={
+                    <HiOutlinePlusSmall
+                      className="-mr-0.5 h-5 w-5 text-primary group-hover:text-secondary"
+                      aria-hidden="true"
+                    />
+                  }
+                  onClick={() => {
+                    if (boardId) openNewListForm(boardId);
+                  }}
+                  disabled={!boardData}
+                >
+                  {t`New list`}
+                </Button>
+              </Tooltip>
+            )}
             <BoardDropdown
               isTemplate={!!isTemplate}
               isLoading={!boardData}
@@ -729,20 +760,16 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                         : t`No lists have been created yet`}
                     </p>
                   </div>
-                  <Tooltip
-                    content={
-                      !canCreateList ? t`You don't have permission` : undefined
-                    }
-                  >
+                  {/* coraggio: hide (not just disable) when lists can't be created */}
+                  {canCreateList && (
                     <Button
                       onClick={() => {
-                        if (boardId && canCreateList) openNewListForm(boardId);
+                        if (boardId) openNewListForm(boardId);
                       }}
-                      disabled={!canCreateList}
                     >
                       {t`Create new list`}
                     </Button>
-                  </Tooltip>
+                  )}
                 </div>
               ) : (
                 <DragDropContext onDragEnd={onDragEnd}>
@@ -777,7 +804,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                                   {...provided.droppableProps}
                                   className="scrollbar-track-rounded-[4px] scrollbar-thumb-rounded-[4px] scrollbar-w-[8px] z-10 h-full max-h-[calc(100vh-225px)] min-h-[2rem] overflow-y-auto pr-1 scrollbar dark:scrollbar-track-dark-100 dark:scrollbar-thumb-dark-600"
                                 >
-                                  {list.cards.map((card, index) => (
+                                  {followUpSort.sortCards(list.cards).map((card, index) => (
                                     <Draggable
                                       key={card.publicId}
                                       draggableId={card.publicId}
@@ -829,6 +856,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                                         >
                                           <Card
                                             title={card.title}
+                                            starred={isCardStarred(card.customData as Record<string, unknown> | null)}
                                             ticketNumber={
                                               card.cardNumber != null &&
                                               boardCustomFieldsConfig?.main?.fields?.id?.showOnBoard !== false
@@ -891,6 +919,16 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
             onClose={() => setContextMenu(null)}
             onAction={handleCardContextMenuAction}
             canEdit={!!canEditCard}
+            starred={
+              isTemplate
+                ? undefined
+                : isCardStarred(
+                    boardData?.lists
+                      .flatMap((list) => list.cards)
+                      .find((c) => c.publicId === contextMenu.cardPublicId)
+                      ?.customData as Record<string, unknown> | null,
+                  )
+            }
           />
         )}
         {renderModalContent()}

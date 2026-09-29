@@ -8,14 +8,25 @@ import JoinWorkspaceTemplate from "./templates/join-workspace";
 import MagicLinkTemplate from "./templates/magic-link";
 import MentionTemplate from "./templates/mention";
 import ResetPasswordTemplate from "./templates/reset-password";
+// coraggio: notification templates
+import CoraggioCardAssignedTemplate from "./templates/coraggio-card-assigned";
+import CoraggioFollowUpReminderTemplate from "./templates/coraggio-follow-up-reminder";
 
-type Templates = "MAGIC_LINK" | "JOIN_WORKSPACE" | "RESET_PASSWORD" | "MENTION";
+type Templates =
+  | "MAGIC_LINK"
+  | "JOIN_WORKSPACE"
+  | "RESET_PASSWORD"
+  | "MENTION"
+  | "CORAGGIO_CARD_ASSIGNED" // coraggio
+  | "CORAGGIO_FOLLOW_UP_REMINDER"; // coraggio
 
 const emailTemplates: Record<Templates, React.ComponentType<any>> = {
   MAGIC_LINK: MagicLinkTemplate,
   JOIN_WORKSPACE: JoinWorkspaceTemplate,
   RESET_PASSWORD: ResetPasswordTemplate,
   MENTION: MentionTemplate,
+  CORAGGIO_CARD_ASSIGNED: CoraggioCardAssignedTemplate, // coraggio
+  CORAGGIO_FOLLOW_UP_REMINDER: CoraggioFollowUpReminderTemplate, // coraggio
 };
 
 const transporter = nodemailer.createTransport({

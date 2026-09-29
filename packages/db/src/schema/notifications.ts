@@ -21,6 +21,9 @@ export const notificationTypes = [
   "workspace.member.added",
   "workspace.member.removed",
   "workspace.role.changed",
+  // coraggio: assignment and follow-up reminder emails
+  "card.assigned",
+  "card.due_reminder",
 ] as const;
 
 export type NotificationType = (typeof notificationTypes)[number];

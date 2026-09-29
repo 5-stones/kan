@@ -16,3 +16,4 @@ export * from "./permissions";
 export * from "./notifications";
 export * from "./webhooks";
 export * from "./themes";
+export * from "./coraggio"; // coraggio: fork-owned tables

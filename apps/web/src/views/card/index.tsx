@@ -45,6 +45,8 @@ import ListSelector from "./components/ListSelector";
 import MemberSelector from "./components/MemberSelector";
 import { NewChecklistForm } from "./components/NewChecklistForm";
 import NewCommentForm from "./components/NewCommentForm";
+import { StarToggle } from "../coraggio/StarToggle"; // coraggio
+import { isCardStarred } from "@kan/shared"; // coraggio
 
 interface FormValues {
   cardId: string;
@@ -151,7 +153,15 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
     }) ?? [];
 
   return (
-    <div className="card-detail-panel h-full w-[360px] border-l-[1px] border-border bg-background p-8 text-textMuted dark:border-borderDark dark:bg-backgroundDark dark:text-textMutedDark">
+    <div className="card-detail-panel relative h-full w-[360px] border-l-[1px] border-border bg-background p-8 text-textMuted dark:border-borderDark dark:bg-backgroundDark dark:text-textMutedDark">
+      {!isTemplate && (
+        // coraggio: shared star flag
+        <StarToggle
+          cardPublicId={cardId ?? ""}
+          customData={card?.customData}
+          disabled={!canEdit}
+        />
+      )}
       <div className="card-detail-field card-detail-field-list mb-4 flex w-full flex-row pt-[18px]">
         <p className="my-2 w-[100px] shrink-0 text-sm font-medium">
           {listLabel}
@@ -418,7 +428,14 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
       <PageHead
         title={t`${card?.title ?? t`Card`} | ${board?.name ?? t`Board`}`}
       />
-      <div className="card-detail flex h-full flex-1 flex-col overflow-hidden">
+      <div
+        className={`card-detail${
+          // coraggio: starred contacts get the gold left border
+          isCardStarred(card?.customData as Record<string, unknown> | null)
+            ? " card-detail-starred"
+            : ""
+        } flex h-full flex-1 flex-col overflow-hidden`}
+      >
         {/* Full-width top strip with board link and dropdown */}
         <div className="card-detail-header flex w-full items-center justify-between border-b-[1px] border-border bg-background px-8 py-2 dark:border-borderDark dark:bg-backgroundDark">
           {!card && isLoading && (

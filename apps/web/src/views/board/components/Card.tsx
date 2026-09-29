@@ -16,6 +16,7 @@ import { getAvatarUrl } from "~/utils/helpers";
 
 const Card = ({
   title,
+  starred,
   ticketNumber,
   labels,
   members,
@@ -27,6 +28,7 @@ const Card = ({
   showOnBoardFields,
 }: {
   title: string;
+  starred?: boolean; // coraggio
   ticketNumber?: string | null;
   labels: { name: string; colourCode: string | null }[];
   members: {
@@ -70,7 +72,7 @@ const Card = ({
   const hasDueDate = !!dueDate;
 
   return (
-    <div className="card flex flex-col overflow-hidden rounded-md border border-border bg-card px-3 py-2 text-sm text-text hover:bg-light-200 dark:border-borderDark dark:bg-cardDark dark:text-textDark dark:hover:bg-dark-300">
+    <div className={`card${starred ? " card-starred" : ""} flex flex-col overflow-hidden rounded-md border border-border bg-card px-3 py-2 text-sm text-text hover:bg-light-200 dark:border-borderDark dark:bg-cardDark dark:text-textDark dark:hover:bg-dark-300`}>
       {ticketNumber && (
         <span className="mb-1 text-xs text-textMuted dark:text-textMutedDark">
           {ticketNumber}
