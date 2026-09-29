@@ -38,7 +38,8 @@ export const memberRouter = createTRPCRouter({
     })
     .input(
       z.object({
-        email: z.string().email(),
+        // Stored lowercase: auth lowercases user emails, and invite lookups compare emails
+        email: z.string().trim().toLowerCase().email(),
         workspacePublicId: z.string().min(12),
       }),
     )
@@ -66,7 +67,7 @@ export const memberRouter = createTRPCRouter({
       await assertPermission(ctx.db, userId, workspace.id, "member:invite");
 
       const isInvitedEmailAlreadyMember = workspace.members.some(
-        (member) => member.email === input.email,
+        (member) => member.email.toLowerCase() === input.email,
       );
 
       if (isInvitedEmailAlreadyMember) {

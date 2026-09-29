@@ -1,4 +1,4 @@
-import { and, count, eq, isNull, ne, or } from "drizzle-orm";
+import { and, count, eq, isNull, ne, or, sql } from "drizzle-orm";
 
 import type { dbClient } from "@kan/db/client";
 import type { MemberRole, MemberStatus } from "@kan/db/schema";
@@ -121,7 +121,7 @@ export const getByEmailAndStatus = async (
 ) => {
   return db.query.workspaceMembers.findFirst({
     where: and(
-      eq(workspaceMembers.email, email),
+      sql`lower(${workspaceMembers.email}) = lower(${email})`,
       eq(workspaceMembers.status, status),
       isNull(workspaceMembers.deletedAt),
     ),
