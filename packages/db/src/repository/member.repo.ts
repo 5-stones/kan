@@ -128,6 +128,24 @@ export const getByEmailAndStatus = async (
   });
 };
 
+/** Activates every pending invitation for an email address (case-insensitive). */
+export const acceptAllPendingInvites = async (
+  db: dbClient,
+  args: { email: string; userId: string },
+) => {
+  return db
+    .update(workspaceMembers)
+    .set({ status: "active", userId: args.userId })
+    .where(
+      and(
+        sql`lower(${workspaceMembers.email}) = lower(${args.email})`,
+        eq(workspaceMembers.status, "invited"),
+        isNull(workspaceMembers.deletedAt),
+      ),
+    )
+    .returning({ id: workspaceMembers.id });
+};
+
 export const acceptInvite = async (
   db: dbClient,
   args: { memberId: number; userId: string },
