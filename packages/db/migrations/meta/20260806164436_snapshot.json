@@ -511,6 +511,12 @@
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false
+        },
+        "customFieldsConfig": {
+          "name": "customFieldsConfig",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {
@@ -1303,6 +1309,12 @@
         "dueDate": {
           "name": "dueDate",
           "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "customData": {
+          "name": "customData",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         }
