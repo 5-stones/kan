@@ -5,7 +5,7 @@ import { HiMiniPlus, HiXMark } from "react-icons/hi2";
 
 import DateSelector from "~/components/DateSelector";
 import { useWorkspace } from "~/providers/workspace";
-import type { CustomFieldDef } from "@kan/shared";
+import { formatFieldDisplayValue, type CustomFieldDef } from "@kan/shared";
 
 interface Props {
   fieldKey: string;
@@ -113,7 +113,7 @@ export function DateField({
   };
 
   const displayString = dateObj && isValid(dateObj)
-    ? format(dateObj, isDateTime ? "MMM d, yyyy HH:mm" : "MMM d, yyyy")
+    ? formatFieldDisplayValue(field, externalValue)
     : null;
 
   return (

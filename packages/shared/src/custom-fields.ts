@@ -1,3 +1,4 @@
+import { format as formatDate, isValid, parseISO } from "date-fns";
 import { load } from "js-yaml";
 import { z } from "zod";
 
@@ -62,6 +63,8 @@ export interface CustomFieldDef {
   step?: number | string;
   /** checkbox/radio styles: append an "Other" option with a free-text input. A string sets its label. */
   allowOther?: boolean | string;
+  /** date/datetime-local: date-fns display format (e.g. "MMMM d, yyyy") */
+  format?: string;
   default?: string | string[];
   options?: Record<string, string>;
   fields?: Record<string, CustomFieldDef>;
@@ -85,6 +88,7 @@ export const CustomFieldDefSchema: z.ZodType<CustomFieldDef> = z.lazy(() =>
     max: z.union([z.number(), z.string()]).optional(),
     step: z.union([z.number(), z.string()]).optional(),
     allowOther: z.union([z.boolean(), z.string()]).optional(),
+    format: z.string().optional(),
     default: z.union([z.string(), z.array(z.string())]).optional(),
     options: z.record(z.string(), z.string()).optional(),
     fields: z.record(z.string(), CustomFieldDefSchema).optional(),
@@ -244,6 +248,34 @@ export function getMainCustomFields(
         "type" in (entry[1] as object),
     )
     .map(([key, field]) => ({ key, field }));
+}
+
+export const DEFAULT_DATE_DISPLAY_FORMAT = "MMM d, yyyy";
+export const DEFAULT_DATETIME_DISPLAY_FORMAT = "MMM d, yyyy HH:mm";
+
+/**
+ * Human-readable text for a field value, e.g. for board cards.
+ * Dates use the field's `format` (date-fns pattern) or the defaults above.
+ */
+export function formatFieldDisplayValue(
+  field: CustomFieldDef,
+  value: unknown,
+): string {
+  if (value == null) return "";
+  if (field.type === "date" || field.type === "datetime-local") {
+    const date = typeof value === "string" ? parseISO(value) : null;
+    if (date && isValid(date)) {
+      return formatDate(
+        date,
+        field.format ??
+          (field.type === "date"
+            ? DEFAULT_DATE_DISPLAY_FORMAT
+            : DEFAULT_DATETIME_DISPLAY_FORMAT),
+      );
+    }
+  }
+  if (Array.isArray(value)) return value.map(String).join(", ");
+  return String(value);
 }
 
 /**

@@ -81,6 +81,7 @@ Every field definition can include the following properties.
 | `placeholder` | string | Placeholder text for input fields. |
 | `description` | string | Helper text shown beneath the field. |
 | `hideLabel` | boolean | Hide the field label. Default `false`. |
+| `format` | string | Display format for `date` and `datetime-local` fields, as a [date-fns pattern](https://date-fns.org/docs/format) (e.g. `MMMM d, yyyy`). Default `MMM d, yyyy`. Also used on board cards. |
 | `default` | string \| string[] | Pre-filled default value(s). |
 | `options` | map | Key-value pairs for `select` fields (key = stored value, value = display label). |
 | `multiple` | boolean | Allow multiple selections for `select` fields. Default `false`. |
@@ -98,7 +99,7 @@ Every field definition can include the following properties.
 
 Both built-in sections support:
 - **Adding custom fields** under the `fields` key.
-- **Overriding built-in field labels** (e.g., renaming the description or due-date field):
+- **Overriding built-in field labels** (e.g., renaming the description, list, labels, members or due-date field):
 
 ```yaml
 main:
