@@ -17,13 +17,17 @@ import {
   getCoraggioAdminEmails,
   isCoraggioAdmin,
 } from "../../utils/coraggio/admin";
+import {
+  builtInTemplateSnapshot,
+  loadBuiltInBoardTemplate,
+} from "../../utils/coraggio/boardTemplate";
 import { inviteWorkspaceMember } from "../../utils/coraggio/invite";
 import { applyVdRolePermissions } from "../../utils/coraggio/roles";
 import { assertPermission } from "../../utils/permissions";
 
 const log = createLogger("coraggio-admin");
 
-/** Built-in runtime theme key (theme.yaml mounted via KAN_THEMES_DIR). */
+/** Built-in runtime theme key (themes/coraggio.yaml in the coraggio repo, via KAN_THEMES_DIR). */
 const CORAGGIO_THEME_ID = "coraggio";
 
 /** Adds every other NSPV admin with an account to the workspace as an active admin. */
@@ -59,6 +63,52 @@ async function addNspvAdmins(
   }
 }
 
+/** Snapshot to clone for a new diocese board: a template board, or the built-in template. */
+async function resolveTemplate(
+  db: dbClient,
+  userId: string,
+  templateBoardPublicId: string | undefined,
+) {
+  if (!templateBoardPublicId) {
+    const builtIn = loadBuiltInBoardTemplate();
+    if (!builtIn) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "No built-in board template is configured (CORAGGIO_BOARD_TEMPLATE); pick a template board",
+      });
+    }
+    return { source: builtInTemplateSnapshot(builtIn), sourceBoardId: undefined };
+  }
+
+  const templateInfo = await boardRepo.getIdByPublicId(db, templateBoardPublicId);
+  if (!templateInfo) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Template board not found" });
+  }
+  const template = await boardRepo.getByPublicId(
+    db,
+    templateBoardPublicId,
+    userId,
+    { members: [], labels: [], lists: [], dueDate: [], type: templateInfo.type },
+  );
+  if (!template) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Template board not found" });
+  }
+  const templateWorkspace = await workspaceRepo.getByPublicId(
+    db,
+    template.workspace.publicId,
+  );
+  if (!templateWorkspace) throw new TRPCError({ code: "NOT_FOUND" });
+  await assertPermission(db, userId, templateWorkspace.id, "board:view");
+
+  return {
+    source: {
+      ...template,
+      lists: template.lists.map((list) => ({ ...list, cards: [] })),
+    },
+    sourceBoardId: templateInfo.id,
+  };
+}
+
 export const coraggioAdminRouter = createTRPCRouter({
   /** Whether the current user is an NSPV admin (drives admin UI visibility). */
   me: protectedProcedure.query(({ ctx }) => ({
@@ -72,6 +122,17 @@ export const coraggioAdminRouter = createTRPCRouter({
   listTemplateBoards: coraggioAdminProcedure.query(({ ctx }) =>
     coraggioRepo.listTemplateBoards(ctx.db),
   ),
+
+  /** The built-in board template (CORAGGIO_BOARD_TEMPLATE), or null when not configured. */
+  builtInTemplate: coraggioAdminProcedure.query(() => {
+    const template = loadBuiltInBoardTemplate();
+    return template && {
+      name: template.name,
+      lists: template.lists,
+      labels: template.labels,
+      hasCustomFields: !!template.customFieldsConfig,
+    };
+  }),
 
   /** Re-applies Coraggio role defaults (VD restrictions) and NSPV admin membership. */
   applyDefaults: coraggioAdminProcedure
@@ -92,42 +153,26 @@ export const coraggioAdminRouter = createTRPCRouter({
    * Interim onboarding for a diocese: a workspace per diocese with a board cloned
    * from a template (statuses, custom fields, labels), VD role restrictions,
    * NSPV admins as workspace admins, and email invites for the VDs.
+   * Without templateBoardPublicId the built-in template file is used.
    */
   onboardDiocese: coraggioAdminProcedure
     .input(
       z.object({
         name: z.string().trim().min(1).max(64),
         boardName: z.string().trim().min(1).max(100),
-        templateBoardPublicId: z.string().min(12),
+        templateBoardPublicId: z.string().min(12).optional(),
         vdEmails: z.array(z.string().trim().toLowerCase().email()).max(50),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.user!.id;
 
-      // Validate the template before creating anything
-      const templateInfo = await boardRepo.getIdByPublicId(
+      // Resolve the template before creating anything
+      const { source, sourceBoardId } = await resolveTemplate(
         ctx.db,
-        input.templateBoardPublicId,
-      );
-      if (!templateInfo) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Template board not found" });
-      }
-      const template = await boardRepo.getByPublicId(
-        ctx.db,
-        input.templateBoardPublicId,
         userId,
-        { members: [], labels: [], lists: [], dueDate: [], type: templateInfo.type },
+        input.templateBoardPublicId,
       );
-      if (!template) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Template board not found" });
-      }
-      const templateWorkspace = await workspaceRepo.getByPublicId(
-        ctx.db,
-        template.workspace.publicId,
-      );
-      if (!templateWorkspace) throw new TRPCError({ code: "NOT_FOUND" });
-      await assertPermission(ctx.db, userId, templateWorkspace.id, "board:view");
 
       // 1. Workspace (seeds system roles; the calling admin becomes its admin)
       const workspacePublicId = generateUID();
@@ -149,13 +194,13 @@ export const coraggioAdminRouter = createTRPCRouter({
 
       // 2. Board cloned from the template (cross-workspace, so not via board.create)
       const board = await boardRepo.createFromSnapshot(ctx.db, {
-        source: { ...template, lists: template.lists.map((list) => ({ ...list, cards: [] })) },
+        source,
         workspaceId: newWorkspace.id,
         createdBy: userId,
         slug: generateSlug(input.boardName) || generateUID(),
         name: input.boardName,
         type: "regular",
-        sourceBoardId: templateInfo.id,
+        sourceBoardId,
         themeId: CORAGGIO_THEME_ID,
       });
 

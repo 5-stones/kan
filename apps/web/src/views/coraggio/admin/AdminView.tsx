@@ -15,6 +15,9 @@ const headingClass =
 const helpClass = "mb-6 text-sm text-neutral-500 dark:text-dark-900";
 const labelClass = "mb-1 block text-sm font-medium text-neutral-900 dark:text-dark-1000";
 
+/** select value for the built-in template (not a board public id) */
+const BUILT_IN_TEMPLATE = "built-in";
+
 function parseEmails(value: string) {
   return value
     .split(/[\s,;]+/)
@@ -26,6 +29,7 @@ function OnboardDioceseForm() {
   const utils = api.useUtils();
   const { showPopup } = usePopup();
   const { data: templates } = api.coraggio.admin.listTemplateBoards.useQuery();
+  const { data: builtInTemplate } = api.coraggio.admin.builtInTemplate.useQuery();
 
   const [name, setName] = useState("");
   const [boardName, setBoardName] = useState(CORAGGIO_APP_NAME);
@@ -53,7 +57,11 @@ function OnboardDioceseForm() {
       }),
   });
 
-  const selectedTemplate = templateBoardPublicId || templates?.[0]?.publicId || "";
+  // the built-in template (CORAGGIO_BOARD_TEMPLATE) is the default when configured
+  const selectedTemplate =
+    templateBoardPublicId ||
+    (builtInTemplate ? BUILT_IN_TEMPLATE : templates?.[0]?.publicId) ||
+    "";
 
   return (
     <form
@@ -64,7 +72,8 @@ function OnboardDioceseForm() {
         onboard.mutate({
           name,
           boardName,
-          templateBoardPublicId: selectedTemplate,
+          templateBoardPublicId:
+            selectedTemplate === BUILT_IN_TEMPLATE ? undefined : selectedTemplate,
           vdEmails: parseEmails(vdEmails),
         });
       }}
@@ -103,7 +112,14 @@ function OnboardDioceseForm() {
           onChange={(event) => setTemplateBoardPublicId(event.target.value)}
           required
         >
-          {!templates?.length && <option value="">{t`No template boards found`}</option>}
+          {!builtInTemplate && !templates?.length && (
+            <option value="">{t`No template boards found`}</option>
+          )}
+          {builtInTemplate && (
+            <option value={BUILT_IN_TEMPLATE}>
+              {t`${builtInTemplate.name} (built-in)`}
+            </option>
+          )}
           {templates?.map((template) => (
             <option key={template.publicId} value={template.publicId}>
               {template.name} ({template.workspaceName})
@@ -111,7 +127,9 @@ function OnboardDioceseForm() {
           ))}
         </select>
         <p className="mt-1 text-xs text-neutral-500 dark:text-dark-900">
-          {t`Statuses, labels, custom fields and theme are copied from this template.`}
+          {selectedTemplate === BUILT_IN_TEMPLATE && builtInTemplate
+            ? t`Statuses: ${builtInTemplate.lists.join(", ")}. Labels and custom fields come from the built-in template file.`
+            : t`Statuses, labels and custom fields are copied from this template.`}
         </p>
       </div>
       <div>
