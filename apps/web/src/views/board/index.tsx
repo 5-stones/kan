@@ -67,6 +67,7 @@ import { FollowUpSortToggle } from "../coraggio/FollowUpSortToggle";
 import { HeaderSearch } from "../coraggio/HeaderSearch";
 import { NewContactButton } from "../coraggio/NewContactButton";
 import { useFollowUpSort } from "../coraggio/useFollowUpSort";
+import { useHideNspvAdmins } from "../coraggio/useHideNspvAdmins";
 import { useToggleStar } from "../coraggio/useToggleStar";
 import { UpdateBoardSlugForm } from "./components/UpdateBoardSlugForm";
 import { UpdateBoardThemeForm } from "./components/UpdateBoardThemeForm";
@@ -125,6 +126,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 
   const followUpSort = useFollowUpSort(boardId); // coraggio
   const toggleStar = useToggleStar(); // coraggio
+  const hideNspvAdmins = useHideNspvAdmins(); // coraggio
 
   const { register, handleSubmit, setValue } = useForm<UpdateBoardInput>({
     values: {
@@ -704,9 +706,11 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                 {boardData && (
                   <Filters
                     labels={boardData.labels}
-                    members={boardData.workspace.members.filter(
-                      (member) => member.user !== null,
-                    )}
+                    members={hideNspvAdmins(
+                      boardData.workspace.members.filter(
+                        (member) => member.user !== null,
+                      ),
+                    ) /* coraggio: no NSPV admins in the assignee filter */}
                     lists={boardData.allLists}
                     position="left"
                     isLoading={!boardData}

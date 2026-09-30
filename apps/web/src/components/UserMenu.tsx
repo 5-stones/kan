@@ -8,6 +8,7 @@ import { Fragment } from "react";
 import { twMerge } from "tailwind-merge";
 
 import { authClient } from "@kan/auth/client";
+import { CORAGGIO_SOURCE_CODE_URL } from "@kan/shared"; // coraggio
 
 import { env } from "~/env";
 import { useIsMobile } from "~/hooks/useMediaQuery";
@@ -207,6 +208,18 @@ export default function UserMenu({
                   className="user-menu-docs flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
                 >
                   {t`Documentation`}
+                </Link>
+              </Menu.Item>
+              {/* coraggio: AGPL source offer for the fork */}
+              <Menu.Item>
+                <Link
+                  href={CORAGGIO_SOURCE_CODE_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={handleLinkClick}
+                  className="user-menu-source flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
+                >
+                  {t`Source code`}
                 </Link>
               </Menu.Item>
               <Menu.Item>

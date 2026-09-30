@@ -12,6 +12,9 @@ type CustomData = Record<string, unknown> | null | undefined;
 /** Product name: sidebar logo, and the default board name (not shown as a title). */
 export const CORAGGIO_APP_NAME = "coragg.io";
 
+/** Public source of the running fork (AGPLv3 §13: offer the source to network users). */
+export const CORAGGIO_SOURCE_CODE_URL = "https://github.com/5-stones/kan/tree/coraggio";
+
 /** customData location of the free-form task tied to the follow-up (due) date. */
 export const FOLLOW_UP_TASK_SECTION = "sidebar";
 export const FOLLOW_UP_TASK_FIELD = "followUpTask";

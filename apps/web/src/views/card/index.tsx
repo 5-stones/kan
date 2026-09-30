@@ -47,6 +47,7 @@ import { NewChecklistForm } from "./components/NewChecklistForm";
 import NewCommentForm from "./components/NewCommentForm";
 import { FieldHeader } from "./components/custom-fields/FieldHeader"; // coraggio
 import { CardPanelActions } from "../coraggio/CardPanelActions"; // coraggio
+import { useHideNspvAdmins } from "../coraggio/useHideNspvAdmins"; // coraggio
 import { CORAGGIO_APP_NAME, isCardStarred } from "@kan/shared"; // coraggio
 
 interface FormValues {
@@ -59,6 +60,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
   const router = useRouter();
   const { canEditCard } = usePermissions();
   const { workspace } = useWorkspace(); // coraggio
+  const hideNspvAdmins = useHideNspvAdmins(); // coraggio
   const { data: session } = authClient.useSession();
   const cardId = Array.isArray(router.query.cardId)
     ? router.query.cardId[0]
@@ -148,7 +150,11 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
     })) ?? [];
 
   const formattedMembers =
-    workspaceMembers?.map((member) => {
+    // coraggio: NSPV admins aren't assignable (unless already assigned)
+    hideNspvAdmins(
+      workspaceMembers ?? [],
+      selectedMembers?.map((m) => m.publicId),
+    ).map((member) => {
       const isSelected = selectedMembers?.some(
         (assignedMember) => assignedMember.publicId === member.publicId,
       );
@@ -174,7 +180,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
           />
         ),
       };
-    }) ?? [];
+    });
 
   return (
     <div className="card-detail-panel relative h-full w-[360px] border-l-[1px] border-border bg-background p-8 text-textMuted dark:border-borderDark dark:bg-backgroundDark dark:text-textMutedDark">
@@ -610,6 +616,8 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                       title={descriptionTitle}
                       onToggle={() => setNotesCollapsed(!isNotesCollapsed)}
                       collapsed={isNotesCollapsed}
+                      canEdit={Boolean(canEdit)}
+                      isSection // "+" while collapsed, like the sections
                     />
                     <form
                       onSubmit={handleSubmit(onSubmit)}

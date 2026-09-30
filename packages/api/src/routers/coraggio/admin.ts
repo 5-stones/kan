@@ -115,6 +115,9 @@ export const coraggioAdminRouter = createTRPCRouter({
     isAdmin: isCoraggioAdmin(ctx.user),
   })),
 
+  /** NSPV admin emails, so the UI can leave internal staff out of assignee pickers. */
+  nspvAdminEmails: protectedProcedure.query(() => getCoraggioAdminEmails()),
+
   listWorkspaces: coraggioAdminProcedure.query(({ ctx }) =>
     coraggioRepo.listAllWorkspaces(ctx.db),
   ),

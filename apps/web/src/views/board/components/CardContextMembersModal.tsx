@@ -5,9 +5,11 @@ import { api } from "~/utils/api";
 import { formatMemberDisplayName, getAvatarUrl } from "~/utils/helpers";
 import Avatar from "~/components/Avatar";
 import MemberSelector from "~/views/card/components/MemberSelector";
+import { useHideNspvAdmins } from "~/views/coraggio/useHideNspvAdmins"; // coraggio
 
 export function CardContextMembersModal() {
   const { entityId: cardPublicId, closeModal } = useModal();
+  const hideNspvAdmins = useHideNspvAdmins(); // coraggio
 
   const { data: card, isLoading } = api.card.byId.useQuery(
     { cardPublicId: cardPublicId ?? "" },
@@ -18,7 +20,11 @@ export function CardContextMembersModal() {
   const workspaceMembers = board?.workspace?.members ?? [];
   const selectedMembers = card?.members ?? [];
 
-  const formattedMembers = workspaceMembers.map((member) => {
+  // coraggio: NSPV admins aren't assignable (unless already assigned)
+  const formattedMembers = hideNspvAdmins(
+    workspaceMembers,
+    selectedMembers.map((m) => m.publicId),
+  ).map((member) => {
     const isSelected = selectedMembers.some(
       (m) => m.publicId === member.publicId,
     );

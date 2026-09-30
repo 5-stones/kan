@@ -36,6 +36,7 @@ import { formatMemberDisplayName, getAvatarUrl } from "~/utils/helpers";
 import { FieldRenderer } from "../../card/components/custom-fields/FieldRenderer";
 import { FieldHeader } from "../../card/components/custom-fields/FieldHeader";
 import { TimeseriesField } from "../../card/components/custom-fields/TimeseriesField";
+import { useHideNspvAdmins } from "../../coraggio/useHideNspvAdmins"; // coraggio
 
 type NewCardFormInput = NewCardInput & {
   isCreateAnotherEnabled: boolean;
@@ -66,6 +67,7 @@ export function NewCardForm({
 }: NewCardFormProps) {
   const { showPopup } = usePopup();
   const { workspace } = useWorkspace();
+  const hideNspvAdmins = useHideNspvAdmins(); // coraggio
   const { closeModal, openModal, modalStates, clearModalState } = useModal();
 
   const utils = api.useUtils();
@@ -251,7 +253,8 @@ export function NewCardForm({
     })) ?? [];
 
   const formattedMembers =
-    boardData?.workspace.members.map((member) => ({
+    // coraggio: NSPV admins aren't assignable (unless already picked)
+    hideNspvAdmins(boardData?.workspace.members ?? [], memberPublicIds).map((member) => ({
       key: member.publicId,
       value: formatMemberDisplayName(
         member.user?.name ?? null,
@@ -268,7 +271,7 @@ export function NewCardForm({
           email={member.user?.email ?? member.email}
         />
       ),
-    })) ?? [];
+    }));
 
   const onSubmit = (data: NewCardFormInput) => {
     createCard.mutate({
