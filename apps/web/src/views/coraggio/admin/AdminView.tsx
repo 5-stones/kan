@@ -18,6 +18,8 @@ const labelClass = "mb-1 block text-sm font-medium text-neutral-900 dark:text-da
 /** select value for the built-in template (not a board public id) */
 const BUILT_IN_TEMPLATE = "built-in";
 
+// Fork strings aren't in the compiled Lingui catalogs, and production only fills
+// {placeholders} from compiled messages, so keep values out of t`` here.
 function parseEmails(value: string) {
   return value
     .split(/[\s,;]+/)
@@ -42,8 +44,8 @@ function OnboardDioceseForm() {
       const failed = data.invites.filter((invite) => !invite.invited);
       setResult(
         failed.length
-          ? t`Diocese created, but ${failed.length} invite(s) failed: ${failed.map((f) => f.email).join(", ")}`
-          : t`Diocese created and ${data.invites.length} VD invite(s) sent.`,
+          ? `${t`Diocese created, but some invites failed:`} ${failed.map((f) => f.email).join(", ")}`
+          : `${t`Diocese created. VD invites sent:`} ${data.invites.length}`,
       );
       setName("");
       setVdEmails("");
@@ -117,7 +119,7 @@ function OnboardDioceseForm() {
           )}
           {builtInTemplate && (
             <option value={BUILT_IN_TEMPLATE}>
-              {t`${builtInTemplate.name} (built-in)`}
+              {builtInTemplate.name} {t`(built-in)`}
             </option>
           )}
           {templates?.map((template) => (
@@ -128,7 +130,7 @@ function OnboardDioceseForm() {
         </select>
         <p className="mt-1 text-xs text-neutral-500 dark:text-dark-900">
           {selectedTemplate === BUILT_IN_TEMPLATE && builtInTemplate
-            ? t`Statuses: ${builtInTemplate.lists.join(", ")}. Labels and custom fields come from the built-in template file.`
+            ? `${t`Statuses:`} ${builtInTemplate.lists.join(", ")}. ${t`Labels and custom fields come from the built-in template file.`}`
             : t`Statuses, labels and custom fields are copied from this template.`}
         </p>
       </div>

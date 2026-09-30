@@ -440,7 +440,7 @@ export default function ThemesView() {
   return (
     <>
       <Head>
-        <title>{t`Themes - ${workspace.name ?? "Workspace"} - kan.bn`}</title>
+        <title>{`${t`Themes`} - ${workspace.name ?? t`Workspace`} - kan.bn`}</title>
       </Head>
       <div className="m-auto h-full max-w-[1100px] p-8 px-5 md:px-28 md:py-12">
         <div className="relative z-10 mb-8 flex w-full items-center justify-between">
