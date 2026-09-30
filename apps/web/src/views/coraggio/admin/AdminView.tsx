@@ -1,6 +1,8 @@
 import { t } from "@lingui/core/macro";
 import { useState } from "react";
 
+import { CORAGGIO_APP_NAME } from "@kan/shared";
+
 import Button from "~/components/Button";
 import Input from "~/components/Input";
 import { PageHead } from "~/components/PageHead";
@@ -26,7 +28,7 @@ function OnboardDioceseForm() {
   const { data: templates } = api.coraggio.admin.listTemplateBoards.useQuery();
 
   const [name, setName] = useState("");
-  const [boardName, setBoardName] = useState("Discerners");
+  const [boardName, setBoardName] = useState(CORAGGIO_APP_NAME);
   const [templateBoardPublicId, setTemplateBoardPublicId] = useState("");
   const [vdEmails, setVdEmails] = useState("");
   const [result, setResult] = useState<string | null>(null);

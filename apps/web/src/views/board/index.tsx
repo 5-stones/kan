@@ -15,7 +15,12 @@ import {
 } from "react-icons/hi2";
 
 import type { UpdateBoardInput } from "@kan/api/types";
-import { parseCustomFieldsConfig, getShowOnBoardFields } from "@kan/shared";
+import {
+  CORAGGIO_APP_NAME,
+  formatFieldDisplayValue,
+  getShowOnBoardFields,
+  parseCustomFieldsConfig,
+} from "@kan/shared";
 
 import type { CardContextMenuAction } from "./components/CardContextMenu";
 import Button from "~/components/Button";
@@ -60,6 +65,7 @@ import UpdateBoardSlugButton from "./components/UpdateBoardSlugButton";
 import { isCardStarred } from "@kan/shared";
 import { FollowUpSortToggle } from "../coraggio/FollowUpSortToggle";
 import { HeaderSearch } from "../coraggio/HeaderSearch";
+import { NewContactButton } from "../coraggio/NewContactButton";
 import { useFollowUpSort } from "../coraggio/useFollowUpSort";
 import { useToggleStar } from "../coraggio/useToggleStar";
 import { UpdateBoardSlugForm } from "./components/UpdateBoardSlugForm";
@@ -92,8 +98,13 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
     direction: "horizontal",
   });
 
-  const { canCreateList, canEditList, canEditCard, canEditBoard } =
-    usePermissions();
+  const {
+    canCreateList,
+    canEditList,
+    canEditCard,
+    canEditBoard,
+    canCreateCard, // coraggio
+  } = usePermissions();
 
   const { tooltipContent: createListShortcutTooltipContent } =
     useKeyboardShortcut({
@@ -640,7 +651,11 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
           {boardData && (
             <form
               onSubmit={handleSubmit(onSubmit)}
-              className="order-2 focus-visible:outline-none md:order-1"
+              className={`order-2 focus-visible:outline-none md:order-1${
+                // coraggio: the default board name is the product name; the theme
+                // hides it while the sidebar logo already shows it
+                boardData.name === CORAGGIO_APP_NAME ? " board-name-default" : ""
+              }`}
             >
               <input
                 id="name"
@@ -702,6 +717,19 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                   onToggle={followUpSort.toggle}
                   disabled={!boardData}
                 />
+                {/* coraggio: new contact goes into the first list (changeable in the form) */}
+                {canCreateCard && (
+                  <NewContactButton
+                    label={boardCustomFieldsConfig?.main?.newCardTitle ?? t`New card`}
+                    disabled={!boardData?.lists.length}
+                    onClick={() => {
+                      const firstList = boardData?.lists[0];
+                      if (!firstList) return;
+                      setSelectedPublicListId(firstList.publicId);
+                      openModal("NEW_CARD");
+                    }}
+                  />
+                )}
               </>
             )}
             {/* coraggio: hide (not just disable) when lists can't be created */}
@@ -887,7 +915,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                                                   sectionKey,
                                                   fieldKey,
                                                   title: field.title,
-                                                  value: String(value),
+                                                  value: formatFieldDisplayValue(field, value),
                                                 };
                                               })
                                               .filter((f): f is NonNullable<typeof f> => f !== null)}

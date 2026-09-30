@@ -5,7 +5,7 @@ import { isCardStarred } from "@kan/shared";
 
 import { useToggleStar } from "./useToggleStar";
 
-/** Star button shown in the top-right corner of the contact detail sidebar. */
+/** Star button shown in the top-right corner of the contact detail sidebar (see CardPanelActions). */
 export function StarToggle({
   cardPublicId,
   customData,
@@ -22,7 +22,7 @@ export function StarToggle({
   return (
     <button
       type="button"
-      className={`card-star-toggle absolute right-6 top-6 rounded-full p-1 transition-colors disabled:cursor-default ${
+      className={`card-star-toggle rounded-full p-1 transition-colors disabled:cursor-default ${
         starred
           ? "card-star-toggle-active text-yellow-400"
           : "text-textMuted hover:text-yellow-400 dark:text-textMutedDark"

@@ -1,5 +1,5 @@
 const PatternedBackground = () => (
-  <div className="absolute inset-0 h-full w-full">
+  <div className="patterned-background absolute inset-0 h-full w-full">
     <svg className="h-full w-full">
       <pattern
         id="pattern"

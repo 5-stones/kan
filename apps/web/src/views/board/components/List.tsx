@@ -2,17 +2,11 @@ import type { ReactNode } from "react";
 import { t } from "@lingui/core/macro";
 import { Draggable } from "react-beautiful-dnd";
 import { useForm } from "react-hook-form";
-import {
-  HiEllipsisHorizontal,
-  HiOutlinePlusSmall,
-  HiOutlineSquaresPlus,
-  HiOutlineTrash,
-} from "react-icons/hi2";
+import { HiEllipsisHorizontal, HiOutlineTrash } from "react-icons/hi2";
 
 import { authClient } from "@kan/auth/client";
 
 import Dropdown from "~/components/Dropdown";
-import { Tooltip } from "~/components/Tooltip";
 import { usePermissions } from "~/hooks/usePermissions";
 import { useModal } from "~/providers/modal";
 import { api } from "~/utils/api";
@@ -44,17 +38,11 @@ export default function List({
   setSelectedPublicListId,
 }: ListProps) {
   const { openModal } = useModal();
-  const { canCreateCard, canEditList, canDeleteList } = usePermissions();
+  const { canEditList, canDeleteList } = usePermissions();
   const { data: session } = authClient.useSession();
   const isCreator = list.createdBy && session?.user.id === list.createdBy;
   const canEdit = canEditList || isCreator;
   const canDrag = canEditList || isCreator;
-
-  const openNewCardForm = (publicListId: PublicListId) => {
-    if (!canCreateCard) return;
-    openModal("NEW_CARD");
-    setSelectedPublicListId(publicListId);
-  };
 
   const updateList = api.list.update.useMutation();
 
@@ -112,35 +100,10 @@ export default function List({
               />
             </form>
             <div className="flex items-center">
-              <Tooltip
-                content={
-                  !canCreateCard ? t`You don't have permission` : undefined
-                }
-              >
-                <button
-                  className="mx-1 inline-flex h-fit items-center rounded-md p-1 px-1 text-sm font-semibold text-dark-50 hover:bg-light-400 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-dark-200"
-                  onClick={() => openNewCardForm(list.publicId)}
-                  disabled={!canCreateCard}
-                >
-                  <HiOutlinePlusSmall
-                    className="h-5 w-5 text-dark-900"
-                    aria-hidden="true"
-                  />
-                </button>
-              </Tooltip>
+              {/* coraggio: cards are added from the board header's "+" button,
+                  so lists have no add-card button or menu item */}
               {(() => {
                 const dropdownItems = [
-                  ...(canCreateCard
-                    ? [
-                        {
-                          label: t`Add a card`,
-                          action: () => openNewCardForm(list.publicId),
-                          icon: (
-                            <HiOutlineSquaresPlus className="h-[18px] w-[18px] text-dark-900" />
-                          ),
-                        },
-                      ]
-                    : []),
                   ...(canDeleteList || isCreator
                     ? [
                         {

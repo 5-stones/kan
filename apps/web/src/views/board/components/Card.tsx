@@ -1,4 +1,4 @@
-import { format, isBefore, isSameYear, startOfDay } from "date-fns";
+import { format, isBefore, startOfDay } from "date-fns";
 import { HiOutlinePaperClip } from "react-icons/hi";
 import {
   HiBars3BottomLeft,
@@ -53,7 +53,6 @@ const Card = ({
   showOnBoardFields?: Array<{ sectionKey: string; fieldKey: string; title: string; value: string }>;
 }) => {
   const { dateLocale } = useLocalisation();
-  const showYear = dueDate ? !isSameYear(dueDate, new Date()) : false;
   const isOverdue = dueDate ? isBefore(dueDate, startOfDay(new Date())) : false;
   const completedItems = checklists.reduce((acc, checklist) => {
     return acc + checklist.items.filter((item) => item.completed).length;
@@ -105,6 +104,7 @@ const Card = ({
               <Badge
                 value={label.name}
                 iconLeft={<LabelIcon colourCode={label.colourCode} />}
+                colourCode={label.colourCode} // coraggio
               />
             ))}
           </div>
@@ -126,9 +126,8 @@ const Card = ({
                 >
                   <HiOutlineClock className="h-4 w-4" />
                   <span className="text-[11px]">
-                    {format(dueDate, showYear ? "do MMM yyyy" : "do MMM", {
-                      locale: dateLocale,
-                    })}
+                    {/* coraggio: always "Aug 17, 2026" */}
+                    {format(dueDate, "MMM d, yyyy", { locale: dateLocale })}
                   </span>
                 </div>
               )}

@@ -15,6 +15,7 @@ interface LabelSelectorProps {
     value: string;
     selected: boolean;
     leftIcon: React.ReactNode;
+    colourCode?: string | null; // coraggio
   }[];
   isLoading: boolean;
   disabled?: boolean;
@@ -111,6 +112,7 @@ export default function LabelSelector({
                   key={label.key}
                   value={label.value}
                   iconLeft={label.leftIcon}
+                  colourCode={label.colourCode} // coraggio
                 />
               ))}
               <Badge

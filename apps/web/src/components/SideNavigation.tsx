@@ -31,6 +31,8 @@ import UserMenu from "~/components/UserMenu";
 import WorkspaceMenu from "~/components/WorkspaceMenu";
 import { useWorkspace } from "~/providers/workspace";
 import { api } from "~/utils/api";
+import { CORAGGIO_APP_NAME } from "@kan/shared"; // coraggio
+import { usePermissions } from "~/hooks/usePermissions"; // coraggio
 import { useAdminNavItems } from "~/views/coraggio/admin/useAdminNavItem"; // coraggio
 
 interface SideNavigationProps {
@@ -89,6 +91,15 @@ export default function SideNavigation({
 
   const isDarkMode = resolvedTheme === "dark";
   const adminNavItems = useAdminNavItems(); // coraggio
+  // coraggio: hide pages the user can't do anything on
+  const { canCreateBoard, canEditWorkspace, isLoading: isLoadingPermissions } =
+    usePermissions();
+  const hiddenNavSlugs = isLoadingPermissions
+    ? []
+    : [
+        ...(canCreateBoard ? [] : ["templates"]),
+        ...(canEditWorkspace ? [] : ["themes"]),
+      ];
 
   const navigation: {
     slug: string;
@@ -188,7 +199,7 @@ export default function SideNavigation({
             {!isCollapsed && (
               <Link href="/" className="sidebar-logo block">
                 <h1 className="pl-2 text-[16px] font-bold tracking-tight text-neutral-900 dark:text-dark-1000">
-                  kan.bn
+                  {CORAGGIO_APP_NAME /* coraggio */}
                 </h1>
               </Link>
             )}
@@ -216,7 +227,9 @@ export default function SideNavigation({
 
           <WorkspaceMenu isCollapsed={isCollapsed} />
           <ul role="list" className="sidebar-nav space-y-1">
-            {navigation.map((item) => (
+            {navigation
+              .filter((item) => !hiddenNavSlugs.includes(item.slug)) // coraggio
+              .map((item) => (
               <li
                 key={item.slug}
                 className={`sidebar-nav-item sidebar-nav-item-${item.slug}`}

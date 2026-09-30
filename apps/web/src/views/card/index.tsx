@@ -45,8 +45,9 @@ import ListSelector from "./components/ListSelector";
 import MemberSelector from "./components/MemberSelector";
 import { NewChecklistForm } from "./components/NewChecklistForm";
 import NewCommentForm from "./components/NewCommentForm";
-import { StarToggle } from "../coraggio/StarToggle"; // coraggio
-import { isCardStarred } from "@kan/shared"; // coraggio
+import { FieldHeader } from "./components/custom-fields/FieldHeader"; // coraggio
+import { CardPanelActions } from "../coraggio/CardPanelActions"; // coraggio
+import { CORAGGIO_APP_NAME, isCardStarred } from "@kan/shared"; // coraggio
 
 interface FormValues {
   cardId: string;
@@ -57,6 +58,7 @@ interface FormValues {
 export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
   const router = useRouter();
   const { canEditCard } = usePermissions();
+  const { workspace } = useWorkspace(); // coraggio
   const { data: session } = authClient.useSession();
   const cardId = Array.isArray(router.query.cardId)
     ? router.query.cardId[0]
@@ -93,6 +95,11 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
   const labelsPlaceholder = (
     customFieldsConfig?.sidebar?.fields?.["labels"] as BuiltinFieldOverride
   )?.placeholder;
+  // coraggio: built-in titles for labels/members can be overridden like list/dueDate
+  const labelsLabel =
+    customFieldsConfig?.sidebar?.fields?.["labels"]?.title ?? t`Labels`;
+  const membersLabel =
+    customFieldsConfig?.sidebar?.fields?.["members"]?.title ?? t`Members`;
   const membersPlaceholder = (
     customFieldsConfig?.sidebar?.fields?.["members"] as BuiltinFieldOverride
   )?.placeholder;
@@ -101,6 +108,22 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
   const dueDatePlaceholder = (
     customFieldsConfig?.sidebar?.fields?.["dueDate"] as BuiltinFieldOverride
   )?.placeholder;
+
+  // coraggio: moved here with the activity log / comment form
+  const editorWorkspaceMembers =
+    workspaceMembers
+      ?.filter((member) => member.email)
+      .map((member) => ({
+        publicId: member.publicId,
+        email: member.email,
+        user: member.user
+          ? {
+              id: member.user.id,
+              name: member.user.name ?? null,
+              image: member.user.image ?? null,
+            }
+          : null,
+      })) ?? [];
 
   const formattedLabels =
     labels?.map((label) => {
@@ -113,6 +136,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
         value: label.name,
         selected: isSelected ?? false,
         leftIcon: <LabelIcon colourCode={label.colourCode} />,
+        colourCode: label.colourCode, // coraggio
       };
     }) ?? [];
 
@@ -154,14 +178,13 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
 
   return (
     <div className="card-detail-panel relative h-full w-[360px] border-l-[1px] border-border bg-background p-8 text-textMuted dark:border-borderDark dark:bg-backgroundDark dark:text-textMutedDark">
-      {!isTemplate && (
-        // coraggio: shared star flag
-        <StarToggle
-          cardPublicId={cardId ?? ""}
-          customData={card?.customData}
-          disabled={!canEdit}
-        />
-      )}
+      {/* coraggio: star, card menu and close in the top-right corner */}
+      <CardPanelActions
+        cardPublicId={cardId ?? ""}
+        card={card}
+        isTemplate={isTemplate}
+        canEdit={Boolean(canEdit)}
+      />
       <div className="card-detail-field card-detail-field-list mb-4 flex w-full flex-row pt-[18px]">
         <p className="my-2 w-[100px] shrink-0 text-sm font-medium">
           {listLabel}
@@ -176,7 +199,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
       </div>
       <div className="card-detail-field card-detail-field-labels mb-4 flex w-full flex-row">
         <p className="my-2 w-[100px] shrink-0 text-sm font-medium">
-          {t`Labels`}
+          {labelsLabel}
         </p>
         <LabelSelector
           cardPublicId={cardId ?? ""}
@@ -189,7 +212,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
       {!isTemplate && (
         <div className="card-detail-field card-detail-field-members mb-4 flex w-full flex-row">
           <p className="my-2 w-[100px] shrink-0 text-sm font-medium">
-            {t`Members`}
+            {membersLabel}
           </p>
           <MemberSelector
             cardPublicId={cardId ?? ""}
@@ -223,6 +246,27 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
             workspaceMembers={workspaceMembers ?? []}
             canEdit={Boolean(canEdit)}
           />
+        </div>
+      )}
+      {/* coraggio: activity log sits in the right panel, below the follow-up task */}
+      {card && cardId && (
+        <div className="card-detail-activity">
+          <h2 className="text-md pb-4 font-medium text-text dark:text-textDark">
+            {t`Activity log`}
+          </h2>
+          <ActivityList
+            cardPublicId={cardId}
+            isLoading={!card}
+            isAdmin={workspace.role === "admin"}
+          />
+          {!isTemplate && (
+            <div className="mt-6">
+              <NewCommentForm
+                cardPublicId={cardId}
+                workspaceMembers={editorWorkspaceMembers}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -307,25 +351,19 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
   const titlePlaceholder =
     (customFieldsConfigMain?.main?.fields?.["title"] as BuiltinFieldOverride)
       ?.placeholder ?? t`Card title`;
+  // coraggio: notes header (collapsed by default while empty)
+  const descriptionTitle =
+    customFieldsConfigMain?.main?.fields?.["description"]?.title ??
+    t`Description`;
+  const [notesCollapsed, setNotesCollapsed] = useState<boolean | null>(null);
+  const isNotesCollapsed =
+    notesCollapsed ??
+    !card?.description?.replace(/<[^>]*>/g, "").trim();
   const descriptionPlaceholder =
     (
       customFieldsConfigMain?.main?.fields?.["description"] as BuiltinFieldOverride
     )?.placeholder ?? t`Add a description...`;
 
-  const editorWorkspaceMembers =
-    workspaceMembers
-      ?.filter((member) => member.email)
-      .map((member) => ({
-        publicId: member.publicId,
-        email: member.email,
-        user: member.user
-          ? {
-              id: member.user.id,
-              name: member.user.name ?? null,
-              image: member.user.image ?? null,
-            }
-          : null,
-      })) ?? [];
 
   const updateCard = api.card.update.useMutation({
     onError: () => {
@@ -445,7 +483,14 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
           )}
           {card && (
             <>
-              <div className="flex items-center gap-1">
+              <div
+                className={`flex items-center gap-1${
+                  // coraggio: the default board name is the product name, not a title
+                  board?.name === CORAGGIO_APP_NAME
+                    ? " card-detail-header-default-board"
+                    : ""
+                }`}
+              >
                 <Link
                   className="whitespace-nowrapleading-[1.5rem] text-sm font-bold text-text dark:text-textDark"
                   href={`${isTemplate ? "/templates" : "/boards"}`}
@@ -459,6 +504,11 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                 >
                   {board?.name}
                 </Link>
+                {/* coraggio: status (list) the contact is in */}
+                <IoChevronForwardSharp className="h-[10px] w-[10px] text-textMuted dark:text-textMutedDark" />
+                <span className="card-detail-header-list whitespace-nowrap text-sm font-bold leading-[1.5rem] text-text dark:text-textDark">
+                  {card.list.name}
+                </span>
                 {card.cardNumber != null &&
                   card.list.board.workspace.cardPrefix && (
                     <>
@@ -469,7 +519,8 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                     </>
                   )}
               </div>
-              <div className="flex items-center gap-2">
+              {/* coraggio: on desktop these live in the right panel (CardPanelActions) */}
+              <div className="flex items-center gap-2 md:hidden">
                 <Dropdown
                   cardPublicId={cardId}
                   isTemplate={isTemplate}
@@ -553,10 +604,16 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                       />
                     </div>
                   )}
-                  <div className="mb-10 flex w-full max-w-2xl flex-col justify-between">
+                  <div className="card-detail-notes mb-10 flex w-full max-w-2xl flex-col justify-between">
+                    {/* coraggio: collapsible header, like the custom field sections */}
+                    <FieldHeader
+                      title={descriptionTitle}
+                      onToggle={() => setNotesCollapsed(!isNotesCollapsed)}
+                      collapsed={isNotesCollapsed}
+                    />
                     <form
                       onSubmit={handleSubmit(onSubmit)}
-                      className="w-full space-y-6"
+                      className={`w-full space-y-6${isNotesCollapsed ? " hidden" : ""}`}
                     >
                       <div className="mt-2">
                         <Editor
@@ -601,26 +658,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                       )}
                     </>
                   )}
-                  <div className="card-detail-activity border-t-[1px] border-border pt-12 dark:border-borderDark">
-                    <h2 className="text-md pb-4 font-medium text-text dark:text-textDark">
-                      {t`Activity`}
-                    </h2>
-                    <div>
-                      <ActivityList
-                        cardPublicId={cardId}
-                        isLoading={!card}
-                        isAdmin={workspace.role === "admin"}
-                      />
-                    </div>
-                    {!isTemplate && (
-                      <div className="mt-6">
-                        <NewCommentForm
-                          cardPublicId={cardId}
-                          workspaceMembers={editorWorkspaceMembers}
-                        />
-                      </div>
-                    )}
-                  </div>
+                  {/* coraggio: activity lives in the right panel (CardRightPanel) */}
                 </>
               )}
             </div>
