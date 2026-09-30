@@ -493,10 +493,13 @@ export default function Editor({
         }),
         Markdown.configure({ transformPastedText: true }),
         Placeholder.configure({
-          placeholder: readOnly
-            ? ""
-            : (placeholder ??
-              t`Add description... (type '/' to open commands or '@' to mention)`),
+          // Always set the text: extension options are fixed at mount, and
+          // `readOnly` can flip to false later (see the setEditable effect below).
+          // showOnlyWhenEditable hides it while read-only.
+          placeholder:
+            placeholder ??
+            t`Add description... (type '/' to open commands or '@' to mention)`,
+          showOnlyWhenEditable: true,
         }),
         SlashCommands.configure({
           commandItems: getCommandItems(disableHeadings),
