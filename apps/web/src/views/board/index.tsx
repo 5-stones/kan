@@ -452,6 +452,8 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 
         <Modal
           modalSize="md"
+          positionFromTop="sm" // coraggio: room for the contact fields
+          closeOnClickOutside={false} // coraggio: don't discard a half-filled contact
           isVisible={isOpen && modalContentType === "NEW_CARD"}
         >
           <NewCardForm

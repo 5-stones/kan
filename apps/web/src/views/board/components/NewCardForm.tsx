@@ -329,7 +329,12 @@ export function NewCardForm({
   const labelsDisplayTitle = sidebarFieldsConfig.labels?.title ?? t`Labels`;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    // coraggio: cap the height so the fields scroll inside the modal and the
+    // footer (create button) stays on screen
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex max-h-[calc(88dvh-2rem)] flex-col"
+    >
       <div className="px-5 pt-5">
         <div className="flex w-full items-center justify-between pb-5">
           <h2 className="text-sm font-bold text-neutral-900 dark:text-dark-1000">
@@ -519,7 +524,11 @@ export function NewCardForm({
             )}
           </button>
         </div>
+      </div>
 
+      {/* coraggio: scrollable fields; title and pickers above stay fixed so
+          their dropdowns aren't clipped */}
+      <div className="min-h-0 overflow-y-auto px-5">
         {config && (
           <div className="mt-4 flex flex-col gap-4">
             <NewCardCustomFields

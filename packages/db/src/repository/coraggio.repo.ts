@@ -93,6 +93,9 @@ export const searchContacts = async (
   limit = 15,
 ) => {
   const pattern = `%${query}%`;
+  // Fuzzy title matching catches typos ("smyth" → Smith, ~0.33) without
+  // unrelated near-misses ("message" → Messy Owl, ~0.29).
+  const similarityThreshold = 0.3;
 
   return db
     .select({
@@ -117,13 +120,18 @@ export const searchContacts = async (
         isNull(boards.deletedAt),
         or(
           ilike(cards.title, pattern),
-          sql`similarity(${cards.title}, ${query}) > 0.2`,
+          sql`similarity(${cards.title}, ${query}) > ${similarityThreshold}`,
           sql`${cards.customData}::text ILIKE ${pattern}`,
         ),
       ),
     )
     .orderBy(
-      sql`CASE WHEN ${cards.title} ILIKE ${pattern} THEN 0 ELSE 1 END`,
+      // exact title hits, then exact field hits, then fuzzy-only title hits
+      sql`CASE
+        WHEN ${cards.title} ILIKE ${pattern} THEN 0
+        WHEN ${cards.customData}::text ILIKE ${pattern} THEN 1
+        ELSE 2
+      END`,
       sql`similarity(${cards.title}, ${query}) DESC`,
       asc(cards.title),
     )
