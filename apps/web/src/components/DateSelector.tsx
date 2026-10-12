@@ -23,7 +23,7 @@ interface DateSelectorProps {
 const DateSelector = ({
   selectedDate,
   onDateSelect,
-  weekStartsOn = 1,
+  weekStartsOn = 0, // coraggio: Sunday
 }: DateSelectorProps) => {
   const [currentMonth, setCurrentMonth] = useState(() => {
     return selectedDate ? startOfMonth(selectedDate) : startOfMonth(new Date());

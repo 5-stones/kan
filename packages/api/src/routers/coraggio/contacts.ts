@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import * as cardRepo from "@kan/db/repository/card.repo";
+import * as cardActivityRepo from "@kan/db/repository/cardActivity.repo";
 import * as coraggioRepo from "@kan/db/repository/coraggio.repo";
 import * as workspaceRepo from "@kan/db/repository/workspace.repo";
 import {
@@ -14,6 +15,7 @@ import {
 import type { CustomFieldsConfig } from "@kan/shared";
 
 import { createTRPCRouter, protectedProcedure } from "../../trpc";
+import { splitMainAndArchiveBoards } from "../../utils/coraggio/boards";
 import {
   getReminderTimeZone,
   toIsoDateInTimeZone,
@@ -73,6 +75,73 @@ export const coraggioContactsRouter = createTRPCRouter({
         input.starred,
       );
       return { starred: input.starred, customData: result?.customData };
+    }),
+
+  /**
+   * Moves a contact to a status on the diocese's main or archive board (archive /
+   * restore). Labels follow by name, since labels belong to a board.
+   */
+  moveToBoard: protectedProcedure
+    .input(
+      z.object({
+        cardPublicId: z.string().min(12),
+        listPublicId: z.string().min(12),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user?.id;
+      if (!userId) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+      const card = await cardRepo.getWorkspaceAndCardIdByCardPublicId(
+        ctx.db,
+        input.cardPublicId,
+      );
+      if (!card) throw new TRPCError({ code: "NOT_FOUND" });
+
+      await assertCanEdit(
+        ctx.db,
+        userId,
+        card.workspaceId,
+        "card:edit",
+        card.createdBy,
+      );
+
+      const { main, archive } = splitMainAndArchiveBoards(
+        await coraggioRepo.getWorkspaceBoardsWithLists(ctx.db, card.workspaceId),
+      );
+      const target = [main, archive]
+        .flatMap((board) =>
+          board ? board.lists.map((list) => ({ list, boardId: board.id })) : [],
+        )
+        .find(({ list }) => list.publicId === input.listPublicId);
+      if (!target) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Contacts can only move to a status on the main or archive board",
+        });
+      }
+
+      const existing = await cardRepo.getByPublicId(ctx.db, input.cardPublicId);
+      if (!existing) throw new TRPCError({ code: "NOT_FOUND" });
+      if (existing.listId === target.list.id) return { success: true };
+
+      await cardRepo.reorder(ctx.db, {
+        cardId: card.id,
+        newListId: target.list.id,
+        newIndex: undefined,
+      });
+      await coraggioRepo.relinkCardLabelsToBoard(ctx.db, card.id, target.boardId);
+      await cardActivityRepo.bulkCreate(ctx.db, [
+        {
+          type: "card.updated.list",
+          cardId: card.id,
+          createdBy: userId,
+          fromListId: existing.listId,
+          toListId: target.list.id,
+        },
+      ]);
+
+      return { success: true };
     }),
 
   /** Search contacts by name or any custom field value (email, phone, parish, ...). */

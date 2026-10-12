@@ -132,6 +132,8 @@ export function TextField({
             disabled={!canEdit}
             // exposes the filled portion of the track (0-100) for styling
             style={{ "--range-pct": rangePercent(draft, field) } as React.CSSProperties}
+            // unset: the browser still draws the thumb mid-track, so the theme mutes it
+            data-empty={draft === "" ? "" : undefined}
             className="flex-1 disabled:opacity-60"
           />
           <span className="w-6 text-right text-sm tabular-nums text-neutral-900 dark:text-dark-1000">

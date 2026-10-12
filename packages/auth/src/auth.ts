@@ -47,7 +47,8 @@ export const initAuth = (db: dbClient) => {
     socialProviders: configuredProviders,
     user: {
       deleteUser: {
-        enabled: true,
+        // coraggio: accounts are deleted by support on request, not self-service
+        enabled: false,
       },
       additionalFields: {
         stripeCustomerId: {

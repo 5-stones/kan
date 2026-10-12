@@ -33,6 +33,7 @@ import { getAvatarUrl } from "~/utils/helpers";
 import { DeleteMemberConfirmation } from "./components/DeleteMemberConfirmation";
 import { EditMemberPermissionsModal } from "./components/EditMemberPermissionsModal";
 import { InviteMemberForm } from "./components/InviteMemberForm";
+import ReturnToDiscerners from "~/views/coraggio/ReturnToDiscerners"; // coraggio
 
 export default function MembersPage() {
   const { modalContentType, openModal, isOpen } = useModal();
@@ -276,7 +277,8 @@ export default function MembersPage() {
   return (
     <>
       <PageHead title={t`Members | ${workspace.name ?? t`Workspace`}`} />
-      <div className="m-auto h-full max-w-[1100px] p-6 px-5 md:px-28 md:py-12">
+      <div className="members-page m-auto h-full max-w-[1100px] p-6 px-5 md:px-28 md:py-12">
+        <ReturnToDiscerners /* coraggio */ />
         <div className="mb-8 flex w-full justify-between">
           <div className="flex items-center gap-3">
             <h1 className="font-bold tracking-tight text-neutral-900 dark:text-dark-1000 sm:text-[1.2rem]">

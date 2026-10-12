@@ -67,16 +67,22 @@ export function useDragToScroll({
 
     // Check if the click is on an interactive or draggable element
     // We need to be careful not to interfere with react-beautiful-dnd dragging
+    // coraggio: draggables that can't be dragged (data-drag-scroll, e.g. columns a
+    // VD can't reorder) scroll the board instead
+    const draggable = target.closest(
+      "[data-rbd-draggable-id], [data-rbd-drag-handle-draggable-id]",
+    );
+    const isDraggableElement =
+      !!draggable && !draggable.hasAttribute("data-drag-scroll");
     const isInteractiveElement =
       target.closest("a") ||
       target.closest("button") ||
-      target.closest("input") ||
+      target.closest("input:not([readonly])") || // coraggio: read-only names scroll too
       target.closest("textarea") ||
       target.closest("[role='button']") ||
       target.closest("[draggable='true']") ||
       target.closest(".react-beautiful-dnd-drag-handle") ||
-      target.closest("[data-rbd-drag-handle-draggable-id]") ||
-      target.closest("[data-rbd-draggable-id]");
+      isDraggableElement;
 
     // Don't start dragging if clicking on interactive elements
     if (isInteractiveElement) return;

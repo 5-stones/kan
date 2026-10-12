@@ -12,7 +12,6 @@ import { useModal } from "~/providers/modal";
 import { useWorkspace } from "~/providers/workspace";
 import { api } from "~/utils/api";
 import { DeleteWorkspaceConfirmation } from "./components/DeleteWorkspaceConfirmation";
-import UpdateWeekStartDayForm from "./components/UpdateWeekStartDayForm";
 import UpdateWorkspaceDescriptionForm from "./components/UpdateWorkspaceDescriptionForm";
 import UpdateWorkspaceEmailVisibilityForm from "./components/UpdateWorkspaceEmailVisibilityForm";
 import UpdateWorkspaceNameForm from "./components/UpdateWorkspaceNameForm";
@@ -61,14 +60,7 @@ export default function WorkspaceSettings() {
           disabled={!canEditWorkspace}
         />
 
-        <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
-          {t`Week start day`}
-        </h2>
-        <UpdateWeekStartDayForm
-          workspacePublicId={workspace.publicId}
-          weekStartDay={workspaceData?.weekStartDay ?? 1}
-          disabled={!canEditWorkspace}
-        />
+        {/* coraggio: weeks always start on Sunday, so no week start day setting */}
 
         <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
           {t`Theme`}

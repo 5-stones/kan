@@ -34,6 +34,9 @@ RUN git fetch --tags --unshallow 2>/dev/null || git fetch --tags 2>/dev/null || 
     echo "unknown") && \
     echo "$AUTO_VERSION" > /app/AUTO_VERSION
 
+# coraggio: commit for the "Source code" link; CI writes SOURCE_COMMIT since .git isn't in the build context
+RUN (cat /app/SOURCE_COMMIT 2>/dev/null || git rev-parse HEAD 2>/dev/null || true) | tr -d '\n\r' > /app/SOURCE_COMMIT_RESOLVED
+
 RUN turbo prune --scope=@kan/web --scope=@kan/db --scope=@kan/mcp --scope=@kan/docs --scope=@kan/api --scope=@kan/auth --scope=@kan/email --scope=@kan/logger --scope=@kan/shared --scope=@kan/stripe --docker
 
 # ============================================
@@ -60,13 +63,15 @@ WORKDIR /app
 COPY --from=deps /app/ ./
 COPY --from=pruner /app/out/full/ .
 COPY --from=pruner /app/AUTO_VERSION /tmp/AUTO_VERSION
+COPY --from=pruner /app/SOURCE_COMMIT_RESOLVED /tmp/SOURCE_COMMIT
 
 # Force standalone output for production Docker image
 ENV NEXT_PUBLIC_USE_STANDALONE_OUTPUT=true
 ENV CI=true
 
+# coraggio: NEXT_PUBLIC_SOURCE_COMMIT
 RUN VERSION="${APP_VERSION:-$(cat /tmp/AUTO_VERSION 2>/dev/null | tr -d '\n\r' || echo 'unknown')}" && \
-    NEXT_PUBLIC_APP_VERSION="$VERSION" pnpm build --filter=@kan/web
+    NEXT_PUBLIC_APP_VERSION="$VERSION" NEXT_PUBLIC_SOURCE_COMMIT="$(cat /tmp/SOURCE_COMMIT)" pnpm build --filter=@kan/web
 
 # ============================================
 # Stage 5: Migration image (run-once container)

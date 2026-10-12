@@ -373,11 +373,13 @@ const ActivityList = ({
   isLoading: cardIsLoading,
   isAdmin,
   isViewOnly,
+  hideComments, // coraggio
 }: {
   cardPublicId: string;
   isLoading: boolean;
   isAdmin?: boolean;
   isViewOnly?: boolean;
+  hideComments?: boolean; // coraggio: an activity log without comments
 }) => {
   const { dateLocale } = useLocalisation();
   const { data: sessionData } = authClient.useSession();
@@ -511,6 +513,8 @@ const ActivityList = ({
             null,
         });
 
+        if (activity.type === "card.updated.comment.added" && hideComments)
+          return null; // coraggio
         if (activity.type === "card.updated.comment.added")
           return (
             <Comment

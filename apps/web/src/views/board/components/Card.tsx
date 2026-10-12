@@ -1,10 +1,6 @@
 import { format, isBefore, startOfDay } from "date-fns";
 import { HiOutlinePaperClip } from "react-icons/hi";
-import {
-  HiBars3BottomLeft,
-  HiChatBubbleLeft,
-  HiOutlineClock,
-} from "react-icons/hi2";
+import { HiOutlineClock } from "react-icons/hi2";
 import { twMerge } from "tailwind-merge";
 
 import Avatar from "~/components/Avatar";
@@ -21,8 +17,6 @@ const Card = ({
   labels,
   members,
   checklists,
-  description,
-  comments,
   attachments,
   dueDate,
   showOnBoardFields,
@@ -65,8 +59,6 @@ const Card = ({
   const progress =
     totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
-  const hasDescription =
-    description && description.replace(/<[^>]*>/g, "").trim().length > 0;
   const hasAttachments = attachments && attachments.length > 0;
   const hasDueDate = !!dueDate;
 
@@ -94,8 +86,6 @@ const Card = ({
       {labels.length ||
       members.length ||
       checklists.length > 0 ||
-      hasDescription ||
-      comments.length > 0 ||
       hasDueDate ||
       hasAttachments ? (
         <div className="mt-2 flex flex-col justify-end">
@@ -110,15 +100,12 @@ const Card = ({
           </div>
           <div className="mt-2 flex items-center justify-between gap-1">
             <div className="flex items-center gap-2">
-              {hasDescription && (
-                <div className="flex items-center gap-1 text-textMuted dark:text-textMutedDark">
-                  <HiBars3BottomLeft className="h-4 w-4" />
-                </div>
-              )}
+              {/* coraggio: no notes (description) or comment indicators */}
               {hasDueDate && dueDate && (
                 <div
                   className={twMerge(
-                    "flex items-center gap-1",
+                    "card-due flex items-center gap-1",
+                    isOverdue && "card-due-overdue", // coraggio
                     isOverdue
                       ? "text-red-600 dark:text-red-400"
                       : "text-textMuted dark:text-textMutedDark",
@@ -129,11 +116,6 @@ const Card = ({
                     {/* coraggio: always "Aug 17, 2026" */}
                     {format(dueDate, "MMM d, yyyy", { locale: dateLocale })}
                   </span>
-                </div>
-              )}
-              {comments.length > 0 && (
-                <div className="flex items-center gap-1 text-textMuted dark:text-textMutedDark">
-                  <HiChatBubbleLeft className="h-4 w-4" />
                 </div>
               )}
               {hasAttachments && (

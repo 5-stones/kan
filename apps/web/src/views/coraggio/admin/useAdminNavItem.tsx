@@ -3,7 +3,7 @@ import { t } from "@lingui/core/macro";
 import { HiOutlineBuildingLibrary } from "react-icons/hi2";
 
 import type { KeyboardShortcut } from "~/providers/keyboard-shortcuts";
-import { api } from "~/utils/api";
+import { useIsNspvAdmin } from "../useIsNspvAdmin";
 
 /** Sidebar item for the NSPV admin page; empty for everyone else. */
 export function useAdminNavItems(): {
@@ -14,11 +14,9 @@ export function useAdminNavItems(): {
   keyboardShortcut: KeyboardShortcut;
 }[] {
   const router = useRouter();
-  const { data } = api.coraggio.admin.me.useQuery(undefined, {
-    staleTime: Infinity,
-  });
+  const isNspvAdmin = useIsNspvAdmin();
 
-  if (!data?.isAdmin) return [];
+  if (!isNspvAdmin) return [];
 
   return [
     {

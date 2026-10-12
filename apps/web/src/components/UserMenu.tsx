@@ -3,17 +3,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Menu, Transition } from "@headlessui/react";
 import { t } from "@lingui/core/macro";
-import { useTheme } from "next-themes";
 import { Fragment } from "react";
 import { twMerge } from "tailwind-merge";
 
 import { authClient } from "@kan/auth/client";
-import { CORAGGIO_SOURCE_CODE_URL } from "@kan/shared"; // coraggio
+import {
+  CORAGGIO_SUPPORT_EMAIL,
+  getCoraggioSourceCodeUrl,
+} from "@kan/shared"; // coraggio
 
 import { env } from "~/env";
 import { useIsMobile } from "~/hooks/useMediaQuery";
-import { useKeyboardShortcuts } from "~/providers/keyboard-shortcuts";
-import { useModal } from "~/providers/modal";
 import { getAvatarUrl } from "~/utils/helpers";
 
 interface UserMenuProps {
@@ -34,9 +34,6 @@ export default function UserMenu({
   onCloseSideNav,
 }: UserMenuProps) {
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
-  const { openModal } = useModal();
-  const { openLegend } = useKeyboardShortcuts();
   const isMobile = useIsMobile();
 
   const handleLogout = async () => {
@@ -51,13 +48,6 @@ export default function UserMenu({
     if (onCloseSideNav && isMobile) {
       onCloseSideNav();
     }
-  };
-
-  const handleModalOpen = (modalType: string) => {
-    if (onCloseSideNav && isMobile) {
-      onCloseSideNav();
-    }
-    openModal(modalType);
   };
 
   const avatarUrl = imageUrl ? getAvatarUrl(imageUrl) : null;
@@ -127,70 +117,11 @@ export default function UserMenu({
           )}
         >
           <div className="flex flex-col text-neutral-900 dark:text-dark-1000">
-            <div className="user-menu-theme p-1">
-              <div className="flex w-full items-center px-3 py-2 text-left text-xs">
-                <span>{t`Theme`}</span>
-              </div>
-              <Menu.Item>
-                <button
-                  onClick={() => setTheme("system")}
-                  className="user-menu-theme-system flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
-                >
-                  <span
-                    className={twMerge(
-                      theme === "system" ? "visible" : "invisible",
-                      "mr-4 h-[6px] w-[6px] rounded-full bg-light-900 dark:bg-dark-900",
-                    )}
-                  />
-                  {t`System`}
-                </button>
-              </Menu.Item>
-              <Menu.Item>
-                <button
-                  onClick={() => setTheme("dark")}
-                  className="user-menu-theme-dark flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
-                >
-                  <span
-                    className={twMerge(
-                      theme === "dark" ? "visible" : "invisible",
-                      "mr-4 h-[6px] w-[6px] rounded-full bg-light-900 dark:bg-dark-900",
-                    )}
-                  />
-                  {t`Dark`}
-                </button>
-              </Menu.Item>
-              <Menu.Item>
-                <button
-                  onClick={() => setTheme("light")}
-                  className="user-menu-theme-light flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
-                >
-                  <span
-                    className={twMerge(
-                      theme === "light" ? "visible" : "invisible",
-                      "mr-4 h-[6px] w-[6px] rounded-full bg-light-900 dark:bg-dark-900",
-                    )}
-                  />
-                  {t`Light`}
-                </button>
-              </Menu.Item>
-            </div>
-            <div className="light-border-600 border-t-[1px] p-1 dark:border-dark-600">
-              <Menu.Item>
-                <button
-                  onClick={() => {
-                    if (onCloseSideNav && isMobile) {
-                      onCloseSideNav();
-                    }
-                    openLegend();
-                  }}
-                  className="user-menu-shortcuts flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
-                >
-                  {t`Shortcuts`}
-                </button>
-              </Menu.Item>
+            {/* coraggio: no theme switcher, shortcuts or docs; support and feedback go to Coraggio support */}
+            <div className="p-1">
               <Menu.Item>
                 <Link
-                  href="mailto:support@kan.bn"
+                  href={`mailto:${CORAGGIO_SUPPORT_EMAIL}`}
                   target="_blank"
                   rel="noreferrer"
                   onClick={handleLinkClick}
@@ -199,21 +130,10 @@ export default function UserMenu({
                   {t`Support`}
                 </Link>
               </Menu.Item>
-              <Menu.Item>
-                <Link
-                  href="https://docs.kan.bn"
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={handleLinkClick}
-                  className="user-menu-docs flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
-                >
-                  {t`Documentation`}
-                </Link>
-              </Menu.Item>
               {/* coraggio: AGPL source offer for the fork */}
               <Menu.Item>
                 <Link
-                  href={CORAGGIO_SOURCE_CODE_URL}
+                  href={getCoraggioSourceCodeUrl(env.NEXT_PUBLIC_SOURCE_COMMIT)}
                   target="_blank"
                   rel="noreferrer"
                   onClick={handleLinkClick}
@@ -223,12 +143,15 @@ export default function UserMenu({
                 </Link>
               </Menu.Item>
               <Menu.Item>
-                <button
-                  onClick={() => handleModalOpen("NEW_FEEDBACK")}
+                <Link
+                  href={`mailto:${CORAGGIO_SUPPORT_EMAIL}?subject=Feedback`}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={handleLinkClick}
                   className="user-menu-feedback flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
                 >
                   {t`Feedback`}
-                </button>
+                </Link>
               </Menu.Item>
             </div>
             <div className="light-border-600 border-t-[1px] p-1 dark:border-dark-600">
@@ -241,25 +164,7 @@ export default function UserMenu({
                 </button>
               </Menu.Item>
             </div>
-            {env.NEXT_PUBLIC_APP_VERSION && (
-              <div className="light-border-600 border-t-[1px] p-1 dark:border-dark-600">
-                <Menu.Item>
-                  <Link
-                    href={
-                      env.NEXT_PUBLIC_APP_VERSION.includes("+")
-                        ? `https://github.com/kanbn/kan/commit/${env.NEXT_PUBLIC_APP_VERSION.split("+")[1]}`
-                        : `https://github.com/kanbn/kan/releases/tag/v${env.NEXT_PUBLIC_APP_VERSION}`
-                    }
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={handleLinkClick}
-                    className="user-menu-version flex w-full items-center justify-center rounded-[5px] px-3 py-2 text-center text-xs text-light-900 hover:bg-light-200 dark:text-dark-900 dark:hover:bg-dark-400"
-                  >
-                    Version: {env.NEXT_PUBLIC_APP_VERSION}
-                  </Link>
-                </Menu.Item>
-              </div>
-            )}
+            {/* coraggio: no version link (it pointed at upstream commits; Source code has the fork's) */}
           </div>
         </Menu.Items>
       </Transition>

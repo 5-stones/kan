@@ -85,7 +85,8 @@ const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
         <KeyboardShortcutProvider>
           <LinguiProviderWrapper>
             <FontSizeProvider>
-              <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+              {/* coraggio: always dark (the design has no light mode, and no theme switcher) */}
+              <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark">
                 <ModalProvider>
                   <PopupProvider>
                     {posthogKey ? (

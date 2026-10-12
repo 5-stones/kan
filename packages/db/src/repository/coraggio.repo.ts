@@ -5,7 +5,9 @@ import type { dbClient } from "@kan/db/client";
 import {
   boards,
   cards,
+  cardsToLabels,
   coraggioUserSettings,
+  labels,
   lists,
   notifications,
   workspaceMembers,
@@ -277,6 +279,73 @@ export const getBoardContactsForExport = async (
         },
       },
     },
+  });
+};
+
+/* ------------------------------------------------------------------ boards */
+
+/**
+ * Regular, unarchived boards of a workspace (oldest first) with their lists.
+ * Used to find the diocese's main board and its archive board.
+ */
+export const getWorkspaceBoardsWithLists = (db: dbClient, workspaceId: number) => {
+  return db.query.boards.findMany({
+    columns: { id: true, publicId: true, name: true, slug: true },
+    where: and(
+      eq(boards.workspaceId, workspaceId),
+      eq(boards.type, "regular"),
+      eq(boards.isArchived, false),
+      isNull(boards.deletedAt),
+    ),
+    orderBy: asc(boards.id),
+    with: {
+      lists: {
+        columns: { id: true, publicId: true, name: true, index: true },
+        where: isNull(lists.deletedAt),
+        orderBy: asc(lists.index),
+      },
+    },
+  });
+};
+
+/**
+ * Points a card's labels at the same-named labels of another board (labels are
+ * per board), dropping any the target board doesn't have.
+ */
+export const relinkCardLabelsToBoard = async (
+  db: dbClient,
+  cardId: number,
+  boardId: number,
+) => {
+  await db.transaction(async (tx) => {
+    const current = await tx
+      .select({ name: labels.name })
+      .from(cardsToLabels)
+      .innerJoin(labels, eq(cardsToLabels.labelId, labels.id))
+      .where(eq(cardsToLabels.cardId, cardId));
+    if (current.length === 0) return;
+
+    const targets = await tx
+      .select({ id: labels.id, name: labels.name })
+      .from(labels)
+      .where(and(eq(labels.boardId, boardId), isNull(labels.deletedAt)));
+    const idByName = new Map(
+      targets.map((label) => [label.name.toLowerCase(), label.id]),
+    );
+    const labelIds = [
+      ...new Set(
+        current
+          .map((label) => idByName.get(label.name.toLowerCase()))
+          .filter((id): id is number => id !== undefined),
+      ),
+    ];
+
+    await tx.delete(cardsToLabels).where(eq(cardsToLabels.cardId, cardId));
+    if (labelIds.length > 0) {
+      await tx
+        .insert(cardsToLabels)
+        .values(labelIds.map((labelId) => ({ cardId, labelId })));
+    }
   });
 };
 

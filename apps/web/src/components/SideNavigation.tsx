@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { Button } from "@headlessui/react";
 import { t } from "@lingui/core/macro";
@@ -31,9 +30,12 @@ import UserMenu from "~/components/UserMenu";
 import WorkspaceMenu from "~/components/WorkspaceMenu";
 import { useWorkspace } from "~/providers/workspace";
 import { api } from "~/utils/api";
-import { CORAGGIO_APP_NAME } from "@kan/shared"; // coraggio
 import { usePermissions } from "~/hooks/usePermissions"; // coraggio
 import { useAdminNavItems } from "~/views/coraggio/admin/useAdminNavItem"; // coraggio
+import AppLogo from "~/views/coraggio/AppLogo"; // coraggio
+import SidebarExportButton from "~/views/coraggio/SidebarExportButton"; // coraggio
+import { useArchiveNavItems } from "~/views/coraggio/useArchiveNavItems"; // coraggio
+import { useIsNspvAdmin } from "~/views/coraggio/useIsNspvAdmin"; // coraggio
 
 interface SideNavigationProps {
   user: UserType;
@@ -91,15 +93,21 @@ export default function SideNavigation({
 
   const isDarkMode = resolvedTheme === "dark";
   const adminNavItems = useAdminNavItems(); // coraggio
-  // coraggio: hide pages the user can't do anything on
+  const archiveNavItems = useArchiveNavItems(); // coraggio
+  const isNspvAdmin = useIsNspvAdmin(); // coraggio
+  // coraggio: hide pages the user can't do anything on; the logo leads to the
+  // board, so there's no boards list
   const { canCreateBoard, canEditWorkspace, isLoading: isLoadingPermissions } =
     usePermissions();
-  const hiddenNavSlugs = isLoadingPermissions
-    ? []
-    : [
-        ...(canCreateBoard ? [] : ["templates"]),
-        ...(canEditWorkspace ? [] : ["themes"]),
-      ];
+  const hiddenNavSlugs = [
+    "boards",
+    ...(isLoadingPermissions
+      ? []
+      : [
+          ...(canCreateBoard ? [] : ["templates"]),
+          ...(canEditWorkspace ? [] : ["themes"]),
+        ]),
+  ];
 
   const navigation: {
     slug: string;
@@ -179,6 +187,7 @@ export default function SideNavigation({
         description: t`Go to settings`,
       },
     },
+    ...archiveNavItems, // coraggio
     ...adminNavItems, // coraggio
   ];
 
@@ -197,11 +206,11 @@ export default function SideNavigation({
         <div>
           <div className="sidebar-header hidden h-[45px] items-center justify-between pb-3 md:flex">
             {!isCollapsed && (
-              <Link href="/" className="sidebar-logo block">
+              <div className="sidebar-logo block">
                 <h1 className="pl-2 text-[16px] font-bold tracking-tight text-neutral-900 dark:text-dark-1000">
-                  {CORAGGIO_APP_NAME /* coraggio */}
+                  <AppLogo /* coraggio: "coragg.io | diocese", links to the pipeline board */ />
                 </h1>
-              </Link>
+              </div>
             )}
             <Button
               onClick={toggleCollapse}
@@ -225,7 +234,8 @@ export default function SideNavigation({
           </div>
           <div className="sidebar-divider mx-1 mb-4 hidden w-auto border-b border-border dark:border-borderDark md:block" />
 
-          <WorkspaceMenu isCollapsed={isCollapsed} />
+          {/* coraggio: only NSPV admins switch between dioceses */}
+          {isNspvAdmin && <WorkspaceMenu isCollapsed={isCollapsed} />}
           <ul role="list" className="sidebar-nav space-y-1">
             {navigation
               .filter((item) => !hiddenNavSlugs.includes(item.slug)) // coraggio
@@ -247,6 +257,7 @@ export default function SideNavigation({
                 />
               </li>
             ))}
+            <SidebarExportButton isCollapsed={isCollapsed} /* coraggio */ />
           </ul>
         </div>
 

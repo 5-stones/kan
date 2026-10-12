@@ -21,6 +21,7 @@ import {
 } from "react-icons/hi2";
 import { usePermissions } from "~/hooks/usePermissions";
 import { useWorkspace } from "~/providers/workspace";
+import ReturnToDiscerners from "~/views/coraggio/ReturnToDiscerners"; // coraggio
 
 interface SettingsLayoutProps {
   children: React.ReactNode;
@@ -29,8 +30,12 @@ interface SettingsLayoutProps {
 
 export function SettingsLayout({ children, currentTab }: SettingsLayoutProps) {
   const router = useRouter();
-  const { workspace } = useWorkspace();
-  const { canViewWorkspace, canEditWorkspace } = usePermissions();
+  const { workspace, isLoading: isWorkspaceLoading } = useWorkspace();
+  const {
+    canViewWorkspace,
+    canEditWorkspace,
+    isLoading: isPermissionsLoading,
+  } = usePermissions();
   const [selectedTabIndex, setSelectedTabIndex] = useState(0);
 
   const isAdmin = workspace.role === "admin";
@@ -53,7 +58,7 @@ export function SettingsLayout({ children, currentTab }: SettingsLayoutProps) {
       key: "workspace",
       icon: <HiOutlineRectangleGroup />,
       label: t`Workspace`,
-      condition: canViewWorkspace,
+      condition: canViewWorkspace && isAdmin, // coraggio: VDs don't change workspace settings
     },
     {
       key: "permissions",
@@ -71,7 +76,7 @@ export function SettingsLayout({ children, currentTab }: SettingsLayoutProps) {
       key: "api",
       icon: <HiOutlineCodeBracketSquare />,
       label: t`API`,
-      condition: true,
+      condition: isAdmin, // coraggio: no API keys for VDs
     },
     {
       key: "webhooks",
@@ -97,14 +102,25 @@ export function SettingsLayout({ children, currentTab }: SettingsLayoutProps) {
     }
   }, [currentTab, availableTabs]);
 
+  // coraggio: hidden tabs aren't reachable by URL either
+  const isCurrentTabHidden =
+    !isWorkspaceLoading &&
+    !isPermissionsLoading &&
+    !!workspace.role &&
+    !availableTabs.some((tab) => tab.key === currentTab);
+  useEffect(() => {
+    if (isCurrentTabHidden) void router.replace("/settings/account");
+  }, [isCurrentTabHidden, router]);
+
   const isTabActive = (tabKey: string) => {
     return currentTab === tabKey;
   };
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden">
+    <div className="settings-page flex h-full w-full flex-col overflow-hidden">
       <div className="h-full max-h-[calc(100vdh-3rem)] overflow-y-auto md:max-h-[calc(100vdh-4rem)]">
         <div className="m-auto max-w-[1100px] px-5 py-6 md:px-28 md:py-12">
+          <ReturnToDiscerners /* coraggio */ />
           <div className="mb-8 flex w-full justify-between">
             <h1 className="font-bold tracking-tight text-neutral-900 dark:text-dark-1000 sm:text-[1.2rem]">
               {t`Settings`}
@@ -167,7 +183,9 @@ export function SettingsLayout({ children, currentTab }: SettingsLayoutProps) {
                 </nav>
               </div>
             </div>
-            <div className="focus:outline-none">{children}</div>
+            <div className="focus:outline-none">
+              {isCurrentTabHidden ? null : children /* coraggio */}
+            </div>
           </div>
         </div>
       </div>

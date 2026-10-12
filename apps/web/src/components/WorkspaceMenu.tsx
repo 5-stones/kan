@@ -1,9 +1,9 @@
 import { useRouter } from "next/navigation";
-import { Button, Menu, Transition } from "@headlessui/react";
+import { Menu, Transition } from "@headlessui/react";
 import { t } from "@lingui/core/macro";
 import { env } from "next-runtime-env";
 import { Fragment, useState } from "react";
-import { HiCheck, HiMagnifyingGlass } from "react-icons/hi2";
+import { HiCheck } from "react-icons/hi2";
 import { twMerge } from "tailwind-merge";
 
 import { useKeyboardShortcut } from "~/providers/keyboard-shortcuts";
@@ -11,7 +11,6 @@ import { useModal } from "~/providers/modal";
 import { useWorkspace } from "~/providers/workspace";
 import { api } from "~/utils/api";
 import CommandPallette from "./CommandPallette";
-import { Tooltip } from "./Tooltip";
 
 export default function WorkspaceMenu({
   isCollapsed = false,
@@ -26,17 +25,16 @@ export default function WorkspaceMenu({
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
-  const { tooltipContent: commandPaletteShortcutTooltipContent } =
-    useKeyboardShortcut({
-      type: "PRESS",
-      stroke: {
-        key: "k",
-        modifiers: ["META"],
-      },
-      action: () => setIsOpen(true),
-      description: t`Open command menu`,
-      group: "GENERAL",
-    });
+  useKeyboardShortcut({
+    type: "PRESS",
+    stroke: {
+      key: "k",
+      modifiers: ["META"],
+    },
+    action: () => setIsOpen(true),
+    description: t`Open command menu`,
+    group: "GENERAL",
+  });
 
   return (
     <>
@@ -92,17 +90,7 @@ export default function WorkspaceMenu({
                   </span>
                 )}
               </Menu.Button>
-              <Tooltip content={commandPaletteShortcutTooltipContent}>
-                <Button
-                  className={twMerge(
-                    "mb-1 h-[34px] w-[34px] flex-shrink-0 rounded-lg bg-light-200 p-2 hover:bg-light-300 focus:outline-none dark:bg-dark-200 dark:hover:bg-dark-300",
-                    isCollapsed && "md:mb-2 md:h-9 md:w-9",
-                  )}
-                  onClick={() => setIsOpen(true)}
-                >
-                  <HiMagnifyingGlass className="h-4 w-4" aria-hidden="true" />
-                </Button>
-              </Tooltip>
+              {/* coraggio: no search button; contacts are searched from the board header (Cmd+K still opens the palette) */}
             </div>
           )}
         </div>

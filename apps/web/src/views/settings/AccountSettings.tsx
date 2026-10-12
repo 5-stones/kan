@@ -1,6 +1,8 @@
 import { t } from "@lingui/core/macro";
 import { env } from "next-runtime-env";
 
+import { CORAGGIO_SUPPORT_EMAIL } from "@kan/shared"; // coraggio
+
 import Button from "~/components/Button";
 import FeedbackModal from "~/components/FeedbackModal";
 import { FontSizeSelector } from "~/components/FontSizeSelector";
@@ -65,19 +67,20 @@ export default function AccountSettings() {
           <FontSizeSelector />
         </div>
 
+        {/* coraggio: users can't delete their own account, only ask support to */}
         <div className="mb-8 border-t border-light-300 dark:border-dark-300">
           <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
-            {t`Delete account`}
+            {t`throw in the towel`}
           </h2>
           <p className="mb-8 text-sm text-neutral-500 dark:text-dark-900">
-            {t`Once you delete your account, there is no going back. This action cannot be undone.`}
+            {t`Ask us to delete your account. Once it's deleted, there is no going back.`}
           </p>
           <div className="mt-4">
             <Button
               variant="secondary"
-              onClick={() => openModal("DELETE_ACCOUNT")}
+              href={`mailto:${CORAGGIO_SUPPORT_EMAIL}?subject=${encodeURIComponent("Account deletion request")}`}
             >
-              {t`Delete account`}
+              {t`request account deletion`}
             </Button>
           </div>
         </div>

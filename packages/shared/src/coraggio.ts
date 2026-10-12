@@ -15,6 +15,23 @@ export const CORAGGIO_APP_NAME = "coragg.io";
 /** Public source of the running fork (AGPLv3 §13: offer the source to network users). */
 export const CORAGGIO_SOURCE_CODE_URL = "https://github.com/5-stones/kan/tree/coraggio";
 
+/**
+ * Source code link for the running build: the exact commit when the build knows it
+ * (NEXT_PUBLIC_SOURCE_COMMIT, written by CI), else the branch.
+ */
+export function getCoraggioSourceCodeUrl(commit?: string | null): string {
+  const sha = commit?.trim();
+  return sha && /^[0-9a-f]{7,40}$/i.test(sha)
+    ? `https://github.com/5-stones/kan/tree/${sha}`
+    : CORAGGIO_SOURCE_CODE_URL;
+}
+
+/** Support and feedback address (user menu, account deletion requests). */
+export const CORAGGIO_SUPPORT_EMAIL = "support@coragg.io";
+
+/** Slug of the per-diocese archive board (seminarians and non-candidates). */
+export const CORAGGIO_ARCHIVE_BOARD_SLUG = "archive";
+
 /** customData location of the free-form task tied to the follow-up (due) date. */
 export const FOLLOW_UP_TASK_SECTION = "sidebar";
 export const FOLLOW_UP_TASK_FIELD = "followUpTask";

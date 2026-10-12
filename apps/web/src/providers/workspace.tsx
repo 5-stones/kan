@@ -1,6 +1,12 @@
 import type { ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo, // coraggio
+  useState,
+} from "react";
 
 import { api } from "~/utils/api";
 
@@ -178,10 +184,16 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({
     router,
   ]);
 
+  // coraggio: weeks always start on Sunday (the setting is hidden)
+  const sundayWorkspace = useMemo(
+    () => ({ ...workspace, weekStartDay: 0 as const }),
+    [workspace],
+  );
+
   return (
     <WorkspaceContext.Provider
       value={{
-        workspace,
+        workspace: sundayWorkspace, // coraggio
         isLoading,
         hasLoaded,
         availableWorkspaces,

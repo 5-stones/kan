@@ -6,8 +6,6 @@ import {
   HiLink,
   HiOutlineDocumentDuplicate,
   HiOutlineTrash,
-  HiOutlineStar,
-  HiStar,
   HiOutlineAdjustmentsHorizontal,
 } from "react-icons/hi2";
 import { IoArchiveOutline } from "react-icons/io5";
@@ -17,14 +15,12 @@ import { usePermissions } from "~/hooks/usePermissions";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { api } from "~/utils/api";
-import { useExportContactsItem } from "../../coraggio/useExportContactsItem"; // coraggio
 
 export default function BoardDropdown({
   isTemplate,
   isLoading,
   isArchived,
   boardPublicId,
-  isFavorite,
   boardName,
 }: {
   isTemplate: boolean;
@@ -40,7 +36,6 @@ export default function BoardDropdown({
   const { canEditBoard, canDeleteBoard, canCreateBoard, canArchiveBoard } =
     usePermissions();
   const utils = api.useUtils();
-  const exportContactsItem = useExportContactsItem(boardPublicId); // coraggio
 
   const updateBoard = api.board.update.useMutation({
     onSuccess: (_data, variables) => {
@@ -75,13 +70,6 @@ export default function BoardDropdown({
       });
     },
   });
-
-  const handleToggleFavorite = () => {
-    updateBoard.mutate({
-      boardPublicId,
-      favorite: !isFavorite,
-    });
-  };
 
   const handleArchiveOrUnarchive = () => {
     updateBoard.mutate({
@@ -153,18 +141,7 @@ export default function BoardDropdown({
         },
       ]
       : []),
-    ...(!isTemplate ? [exportContactsItem] : []), // coraggio
-    {
-      label: isFavorite
-        ? t`Remove from favorites`
-        : t`Add to favorites`,
-      action: handleToggleFavorite,
-      icon: isFavorite ? (
-        <HiStar className="h-[16px] w-[16px] text-primary group-hover:text-secondary" />
-      ) : (
-        <HiOutlineStar className="h-[16px] w-[16px] text-primary group-hover:text-secondary" />
-      ),
-    },
+    // coraggio: no favorites (one board per diocese); contacts export is in the sidebar
     ...(canDeleteBoard
       ? [
         {

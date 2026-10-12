@@ -45,12 +45,18 @@ const Filters = ({
   members,
   lists,
   isLoading,
+  groupLabels, // coraggio
+  iconOnly, // coraggio
 }: {
   position?: "left" | "right";
   labels: Label[];
   members: Member[];
   lists: List[];
   isLoading: boolean;
+  /** coraggio: board config titles for the built-in fields (e.g. "Follow-up date") */
+  groupLabels?: { members?: string; labels?: string; lists?: string; dueDate?: string };
+  /** coraggio: show only the filter icon */
+  iconOnly?: boolean;
 }) => {
   const router = useRouter();
 
@@ -106,6 +112,7 @@ const Filters = ({
     selected: !!router.query.lists?.includes(list.publicId),
   }));
 
+  // coraggio: options read as "follow-up date: today", so no "Due" prefix
   const dueDateItems = [
     {
       key: "overdue",
@@ -114,27 +121,27 @@ const Filters = ({
     },
     {
       key: "today",
-      value: t`Due today`,
+      value: t`Today`,
       selected: !!router.query.dueDate?.includes("today"),
     },
     {
       key: "tomorrow",
-      value: t`Due tomorrow`,
+      value: t`Tomorrow`,
       selected: !!router.query.dueDate?.includes("tomorrow"),
     },
     {
       key: "next-week",
-      value: t`Due next week`,
+      value: t`Next week`,
       selected: !!router.query.dueDate?.includes("next-week"),
     },
     {
       key: "next-month",
-      value: t`Due next month`,
+      value: t`Next month`,
       selected: !!router.query.dueDate?.includes("next-month"),
     },
     {
       key: "no-due-date",
-      value: t`No dates`,
+      value: t`No date`,
       selected: !!router.query.dueDate?.includes("no-due-date"),
     },
   ];
@@ -144,7 +151,7 @@ const Filters = ({
       ? [
           {
             key: "members",
-            label: t`Members`,
+            label: groupLabels?.members ?? t`Members`,
             icon: <HiOutlineUserCircle size={16} />,
             items: formattedMembers,
           },
@@ -152,7 +159,7 @@ const Filters = ({
       : []),
     {
       key: "labels",
-      label: t`Labels`,
+      label: groupLabels?.labels ?? t`Labels`,
       icon: <HiOutlineTag size={16} />,
       items: formattedLabels,
     },
@@ -160,7 +167,7 @@ const Filters = ({
       ? [
           {
             key: "lists",
-            label: t`Lists`,
+            label: groupLabels?.lists ?? t`Lists`,
             icon: <HiOutlineSquare3Stack3D size={16} />,
             items: formattedLists,
           },
@@ -168,7 +175,7 @@ const Filters = ({
       : []),
     {
       key: "dueDate",
-      label: t`Due date`,
+      label: groupLabels?.dueDate ?? t`Due date`,
       icon: <HiOutlineClock size={16} />,
       items: dueDateItems,
     },
@@ -217,8 +224,11 @@ const Filters = ({
           variant="secondary"
           disabled={isLoading}
           iconLeft={<IoFilterOutline className="text-primary group-hover:text-secondary" />}
+          iconOnly={iconOnly}
+          aria-label={t`Filter`}
+          title={iconOnly ? t`Filter` : undefined}
         >
-          {t`Filter`}
+          {!iconOnly && t`Filter`}
         </Button>
         {numOfFilters > 0 && (
           <button

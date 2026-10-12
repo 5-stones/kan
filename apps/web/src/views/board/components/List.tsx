@@ -10,12 +10,14 @@ import Dropdown from "~/components/Dropdown";
 import { usePermissions } from "~/hooks/usePermissions";
 import { useModal } from "~/providers/modal";
 import { api } from "~/utils/api";
+import { ListInfoButton } from "~/views/coraggio/ListInfoButton"; // coraggio
 
 interface ListProps {
   children: ReactNode;
   index: number;
   list: List;
   setSelectedPublicListId: (publicListId: PublicListId) => void;
+  info?: string; // coraggio: explanation of the status, from the board config
 }
 
 interface List {
@@ -36,6 +38,7 @@ export default function List({
   index,
   list,
   setSelectedPublicListId,
+  info,
 }: ListProps) {
   const { openModal } = useModal();
   const { canEditList, canDeleteList } = usePermissions();
@@ -83,6 +86,7 @@ export default function List({
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
+          data-drag-scroll={canDrag ? undefined : "" /* coraggio: scroll the board instead */}
           className="board-list mr-5 h-fit min-w-[18rem] max-w-[18rem] snap-start rounded-md border border-border bg-surface py-2 pl-2 pr-1 text-text dark:border-borderDark dark:bg-surfaceDark dark:text-textDark md:snap-align-none"
         >
           <div className="board-list-header mb-2 flex justify-between">
@@ -99,6 +103,7 @@ export default function List({
                 className="w-full border-0 bg-transparent px-4 pt-1 text-sm font-medium text-text focus:ring-0 focus-visible:outline-none dark:text-textDark"
               />
             </form>
+            {info && <ListInfoButton info={info} /* coraggio */ />}
             <div className="flex items-center">
               {/* coraggio: cards are added from the board header's "+" button,
                   so lists have no add-card button or menu item */}

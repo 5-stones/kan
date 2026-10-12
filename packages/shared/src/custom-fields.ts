@@ -116,6 +116,8 @@ const MainFieldSchema = z.union([
 
 export const MainSectionSchema = z.object({
   newCardTitle: z.string().optional(),
+  /** explanation of each list (status), keyed by list name; shown as an info popover on the board */
+  listInfo: z.record(z.string(), z.string()).optional(),
   fields: z.record(z.string(), MainFieldSchema).optional(),
 });
 
@@ -199,6 +201,19 @@ export function parseCustomFieldsConfig(yaml: string): CustomFieldsConfig {
 /**
  * Returns all custom sections (excludes the reserved main/sidebar keys).
  */
+/** The configured explanation for a list (status), matched by name ignoring case. */
+export function getListInfo(
+  config: CustomFieldsConfig | null | undefined,
+  listName: string,
+): string | undefined {
+  const listInfo = config?.main?.listInfo;
+  if (!listInfo) return undefined;
+  const name = listName.trim().toLowerCase();
+  return Object.entries(listInfo).find(
+    ([key]) => key.trim().toLowerCase() === name,
+  )?.[1];
+}
+
 export function getCustomSections(
   config: CustomFieldsConfig,
 ): { key: string; section: CustomTopLevelSection }[] {

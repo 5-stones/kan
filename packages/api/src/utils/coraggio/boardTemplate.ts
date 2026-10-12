@@ -20,13 +20,27 @@ const BoardTemplateFileSchema = z.object({
     .default([]),
   /** custom fields YAML file, relative to the template file */
   customFieldsFile: z.string().optional(),
+  /** second board for contacts who left the pipeline (seminarians, non-candidates) */
+  archiveBoard: z
+    .object({
+      name: z.string().min(1),
+      lists: z.array(z.string().min(1)).min(1),
+    })
+    .optional(),
 });
+
+/** Archive board when the template file doesn't define one. */
+export const DEFAULT_ARCHIVE_BOARD = {
+  name: "Archive",
+  lists: ["Seminarians", "Non-candidates"],
+};
 
 export interface BuiltInBoardTemplate {
   name: string;
   lists: string[];
   labels: { name: string; colour: string | null }[];
   customFieldsConfig: string | null;
+  archiveBoard: { name: string; lists: string[] } | null;
 }
 
 /**
@@ -61,6 +75,7 @@ export function loadBuiltInBoardTemplate(): BuiltInBoardTemplate | null {
         colour: label.colour ?? null,
       })),
       customFieldsConfig,
+      archiveBoard: parsed.archiveBoard ?? null,
     };
   } catch (error) {
     throw new TRPCError({
@@ -83,5 +98,28 @@ export function builtInTemplateSnapshot(template: BuiltInBoardTemplate) {
       colourCode: label.colour,
     })),
     lists: template.lists.map((name, index) => ({ name, index, cards: [] })),
+  };
+}
+
+/**
+ * Snapshot for the archive board: its own statuses, with the labels and custom
+ * fields of the main board's source so archived contacts keep their data.
+ */
+export function archiveBoardSnapshot(
+  archive: { name: string; lists: string[] },
+  source: {
+    customFieldsConfig?: string | null;
+    labels: { name: string; colourCode: string | null }[];
+  },
+) {
+  return {
+    name: archive.name,
+    customFieldsConfig: source.customFieldsConfig ?? null,
+    labels: source.labels.map((label) => ({
+      publicId: generateUID(),
+      name: label.name,
+      colourCode: label.colourCode,
+    })),
+    lists: archive.lists.map((name, index) => ({ name, index, cards: [] })),
   };
 }

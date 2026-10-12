@@ -330,10 +330,10 @@ export function NewCardForm({
 
   return (
     // coraggio: cap the height so the fields scroll inside the modal and the
-    // footer (create button) stays on screen
+    // footer (create button) stays on screen; new-card-form is a theme hook
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="flex max-h-[calc(88dvh-2rem)] flex-col"
+      className="new-card-form flex max-h-[calc(88dvh-2rem)] flex-col"
     >
       <div className="px-5 pt-5">
         <div className="flex w-full items-center justify-between pb-5">
@@ -604,7 +604,7 @@ export function NewCardForm({
             type="submit"
             disabled={title.length === 0 || createCard.isPending}
           >
-            {t`Create card`}
+            {t`create` /* coraggio */}
           </Button>
         </div>
       </div>

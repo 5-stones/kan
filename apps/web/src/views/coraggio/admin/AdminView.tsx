@@ -165,7 +165,7 @@ function WorkspaceList() {
     onSuccess: () =>
       showPopup({
         header: t`Defaults applied`,
-        message: t`VD role restrictions and NSPV admin membership are up to date.`,
+        message: t`VD role restrictions, NSPV admin membership, the archive board and the Sunday week start are up to date.`,
         icon: "success",
       }),
     onError: (error) =>
@@ -248,7 +248,7 @@ export default function AdminView() {
             <section className={sectionClass}>
               <h2 className={headingClass}>{t`Dioceses`}</h2>
               <p className={helpClass}>
-                {t`"Apply Coraggio defaults" re-applies the VD role restrictions and adds any NSPV admins who aren't members yet.`}
+                {t`"Apply Coraggio defaults" re-applies the VD role restrictions, adds any NSPV admins who aren't members yet, creates the archive board if it's missing and sets weeks to start on Sunday.`}
               </p>
               <WorkspaceList />
             </section>

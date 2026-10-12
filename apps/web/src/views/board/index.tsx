@@ -61,12 +61,18 @@ import { NewCardForm } from "./components/NewCardForm";
 import { NewListForm } from "./components/NewListForm";
 import { NewTemplateForm } from "./components/NewTemplateForm";
 import UpdateBoardSlugButton from "./components/UpdateBoardSlugButton";
-// coraggio: contact search, follow-up sort, star
-import { isCardStarred } from "@kan/shared";
-import { FollowUpSortToggle } from "../coraggio/FollowUpSortToggle";
+// coraggio: contact search, sort, star, pipeline zoom, list info, archive
+import { getListInfo, isCardStarred } from "@kan/shared";
+import AppLogo from "../coraggio/AppLogo";
+import { BoardSortMenu } from "../coraggio/BoardSortMenu";
+import { BoardZoomToggle, useBoardZoom } from "../coraggio/BoardZoomToggle";
+import { CardContextArchiveModal } from "../coraggio/CardContextArchiveModal";
 import { HeaderSearch } from "../coraggio/HeaderSearch";
 import { NewContactButton } from "../coraggio/NewContactButton";
-import { useFollowUpSort } from "../coraggio/useFollowUpSort";
+import { useBoardSort } from "../coraggio/useBoardSort";
+import { useBoardsNav } from "../coraggio/useBoardsNav";
+import { findMatchingList } from "../coraggio/findMatchingList";
+import { useMoveContactToBoard } from "../coraggio/useMoveContactToBoard";
 import { useHideNspvAdmins } from "../coraggio/useHideNspvAdmins";
 import { useToggleStar } from "../coraggio/useToggleStar";
 import { UpdateBoardSlugForm } from "./components/UpdateBoardSlugForm";
@@ -124,7 +130,10 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 
   const updateBoard = api.board.update.useMutation();
 
-  const followUpSort = useFollowUpSort(boardId); // coraggio
+  const boardSort = useBoardSort(boardId); // coraggio
+  const boardZoom = useBoardZoom(); // coraggio
+  const boardsNav = useBoardsNav(); // coraggio
+  const moveContactToBoard = useMoveContactToBoard(); // coraggio
   const toggleStar = useToggleStar(); // coraggio
   const hideNspvAdmins = useHideNspvAdmins(); // coraggio
 
@@ -210,6 +219,30 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
   const showOnBoardFieldDefs = boardCustomFieldsConfig
     ? getShowOnBoardFields(boardCustomFieldsConfig)
     : [];
+
+  // coraggio: the pipeline archives contacts into the archive board, which restores them
+  const archiveTarget = (() => {
+    const { main, archive } = boardsNav;
+    if (isTemplate || !main || !archive || !boardId) return null;
+    if (boardId === main.publicId) {
+      return {
+        menuLabel: t`Archive`,
+        modalTitle: t`Archive as`,
+        lists: archive.lists,
+        // a contact already in e.g. "Seminarians" goes straight to the same archive status
+        archiveDirectly: true,
+      };
+    }
+    if (boardId === archive.publicId) {
+      return {
+        menuLabel: t`Restore to pipeline`,
+        modalTitle: t`Restore to`,
+        lists: main.lists,
+        archiveDirectly: false,
+      };
+    }
+    return null;
+  })();
 
   useScrollRestore(
     boardId,
@@ -381,6 +414,24 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
       openModal("DELETE_CARD", cardPublicId);
       return;
     }
+    // coraggio: move to the archive board, or back to the pipeline
+    if (action === "archive") {
+      const listName = boardData?.lists.find((list) =>
+        list.cards.some((c) => c.publicId === cardPublicId),
+      )?.name;
+      const sameStatus = archiveTarget?.archiveDirectly
+        ? findMatchingList(archiveTarget.lists, listName)
+        : undefined;
+      if (sameStatus) {
+        moveContactToBoard.mutate({
+          cardPublicId,
+          listPublicId: sameStatus.publicId,
+        });
+      } else {
+        openModal("CARD_CONTEXT_ARCHIVE", cardPublicId);
+      }
+      return;
+    }
     const modalType =
       action === "members"
         ? "CARD_CONTEXT_MEMBERS"
@@ -410,8 +461,8 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
     }
 
     if (type === "CARD" && canEditCard) {
-      // coraggio: while sorted by follow-up date, only moves between columns apply
-      const index = followUpSort.adjustCardDrop(
+      // coraggio: while sorted, only moves between columns apply
+      const index = boardSort.adjustCardDrop(
         { source, destination },
         boardData?.lists.find((l) => l.publicId === destination.droppableId)
           ?.cards.length ?? 0,
@@ -581,6 +632,17 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
         >
           <CardContextMoveListModal />
         </Modal>
+        {archiveTarget && (
+          <Modal
+            modalSize="sm"
+            isVisible={isOpen && modalContentType === "CARD_CONTEXT_ARCHIVE"}
+          >
+            <CardContextArchiveModal
+              title={archiveTarget.modalTitle}
+              lists={archiveTarget.lists}
+            />
+          </Modal>
+        )}
         <Modal
           modalSize="sm"
           isVisible={isOpen && modalContentType === "CARD_CONTEXT_LABELS"}
@@ -652,24 +714,33 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
               <div className="h-[2.3rem] w-[150px] animate-pulse rounded-[5px] bg-light-200 dark:bg-dark-100" />
             </div>
           )}
-          {boardData && (
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className={`order-2 focus-visible:outline-none md:order-1${
-                // coraggio: the default board name is the product name; the theme
-                // hides it while the sidebar logo already shows it
-                boardData.name === CORAGGIO_APP_NAME ? " board-name-default" : ""
-              }`}
-            >
-              <input
-                id="name"
-                type="text"
-                {...register("name")}
-                onBlur={canEditBoard ? handleSubmit(onSubmit) : undefined}
-                readOnly={!canEditBoard}
-                className="block border-0 bg-transparent p-0 py-0 font-bold leading-[2.3rem] tracking-tight text-neutral-900 focus:ring-0 focus-visible:outline-none disabled:cursor-not-allowed dark:text-dark-1000 sm:text-[1.2rem]"
-              />
-            </form>
+          {/* coraggio: the default board name is the product name, shown as the logo
+              ("coragg.io | diocese"); the theme hides it while the sidebar shows the logo */}
+          {boardData?.name === CORAGGIO_APP_NAME && (
+            <div className="board-name-default order-2 md:order-1">
+              <AppLogo className="board-logo" />
+            </div>
+          )}
+          {boardData && boardData.name !== CORAGGIO_APP_NAME && (
+            <div className="board-title order-2 md:order-1">
+              {/* coraggio: other boards (e.g. the archive) show the logo above their
+                  name, so there's a way back with the sidebar collapsed; the theme
+                  hides it while the sidebar shows the logo */}
+              {!isTemplate && <AppLogo className="board-logo board-logo-above" />}
+              <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="focus-visible:outline-none"
+              >
+                <input
+                  id="name"
+                  type="text"
+                  {...register("name")}
+                  onBlur={canEditBoard ? handleSubmit(onSubmit) : undefined}
+                  readOnly={!canEditBoard}
+                  className="block border-0 bg-transparent p-0 py-0 font-bold leading-[2.3rem] tracking-tight text-neutral-900 focus:ring-0 focus-visible:outline-none disabled:cursor-not-allowed dark:text-dark-1000 sm:text-[1.2rem]"
+                />
+              </form>
+            </div>
           )}
           {!boardData && !isLoading && (
             <p className="order-2 block p-0 py-0 font-bold leading-[2.3rem] tracking-tight text-neutral-900 dark:text-dark-1000 sm:text-[1.2rem] md:order-1">
@@ -716,11 +787,18 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                     lists={boardData.allLists}
                     position="left"
                     isLoading={!boardData}
+                    iconOnly /* coraggio */
+                    groupLabels={{
+                      members: boardCustomFieldsConfig?.sidebar?.fields?.members?.title,
+                      labels: boardCustomFieldsConfig?.sidebar?.fields?.labels?.title,
+                      lists: boardCustomFieldsConfig?.sidebar?.fields?.list?.title,
+                      dueDate: boardCustomFieldsConfig?.sidebar?.fields?.dueDate?.title,
+                    }}
                   />
                 )}
-                <FollowUpSortToggle
-                  enabled={followUpSort.enabled}
-                  onToggle={followUpSort.toggle}
+                <BoardSortMenu
+                  sortKey={boardSort.sortKey}
+                  onChange={boardSort.setSortKey}
                   disabled={!boardData}
                 />
                 {/* coraggio: new contact goes into the first list (changeable in the form) */}
@@ -771,7 +849,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
         <div
           ref={scrollRef}
           onMouseDown={onMouseDown}
-          className={`board-lists scrollbar-w-none scrollbar-track-rounded-[4px] scrollbar-thumb-rounded-[4px] scrollbar-h-[8px] z-0 flex-1 snap-x snap-mandatory scroll-pl-[10px] overflow-y-hidden overflow-x-scroll overscroll-contain scrollbar scrollbar-track-light-200 scrollbar-thumb-light-400 dark:scrollbar-track-dark-100 dark:scrollbar-thumb-dark-300 md:snap-none`}
+          className={`board-lists${boardZoom.compact ? " board-compact" : ""} scrollbar-w-none scrollbar-track-rounded-[4px] scrollbar-thumb-rounded-[4px] scrollbar-h-[8px] z-0 flex-1 snap-x snap-mandatory scroll-pl-[10px] overflow-y-hidden overflow-x-scroll overscroll-contain scrollbar scrollbar-track-light-200 scrollbar-thumb-light-400 dark:scrollbar-track-dark-100 dark:scrollbar-thumb-dark-300 md:snap-none`}
         >
           {isLoading ? (
             <div className="ml-[2rem] flex">
@@ -827,6 +905,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                             setSelectedPublicListId={(publicListId) =>
                               setSelectedPublicListId(publicListId)
                             }
+                            info={getListInfo(boardCustomFieldsConfig, list.name) /* coraggio */}
                           >
                             <Droppable
                               droppableId={`${list.publicId}`}
@@ -838,7 +917,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                                   {...provided.droppableProps}
                                   className="scrollbar-track-rounded-[4px] scrollbar-thumb-rounded-[4px] scrollbar-w-[8px] z-10 h-full max-h-[calc(100vh-225px)] min-h-[2rem] overflow-y-auto pr-1 scrollbar dark:scrollbar-track-dark-100 dark:scrollbar-thumb-dark-600"
                                 >
-                                  {followUpSort.sortCards(list.cards).map((card, index) => (
+                                  {boardSort.sortCards(list.cards).map((card, index) => (
                                     <Draggable
                                       key={card.publicId}
                                       draggableId={card.publicId}
@@ -946,6 +1025,9 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
             </>
           ) : null}
         </div>
+        {!isTemplate && boardData && (
+          <BoardZoomToggle compact={boardZoom.compact} onToggle={boardZoom.toggle} /* coraggio */ />
+        )}
         {contextMenu && (
           <CardContextMenu
             x={contextMenu.x}
@@ -953,6 +1035,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
             onClose={() => setContextMenu(null)}
             onAction={handleCardContextMenuAction}
             canEdit={!!canEditCard}
+            archiveLabel={archiveTarget?.menuLabel /* coraggio */}
             starred={
               isTemplate
                 ? undefined

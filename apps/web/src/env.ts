@@ -107,6 +107,7 @@ export const env = createEnv({
       )
       .optional(),
     NEXT_PUBLIC_APP_VERSION: z.string().optional(),
+    NEXT_PUBLIC_SOURCE_COMMIT: z.string().optional(), // coraggio
     NEXT_PUBLIC_ALLOW_CREDENTIALS: z
       .string()
       .transform((s) => (s === "" ? undefined : s))
@@ -148,6 +149,7 @@ export const env = createEnv({
     NEXT_PUBLIC_USE_VIRTUAL_HOSTED_URLS:
       process.env.NEXT_PUBLIC_USE_VIRTUAL_HOSTED_URLS,
     NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
+    NEXT_PUBLIC_SOURCE_COMMIT: process.env.NEXT_PUBLIC_SOURCE_COMMIT, // coraggio
     NEXT_PUBLIC_ALLOW_CREDENTIALS: process.env.NEXT_PUBLIC_ALLOW_CREDENTIALS,
     NEXT_PUBLIC_DISABLE_SIGN_UP: process.env.NEXT_PUBLIC_DISABLE_SIGN_UP,
     NEXT_PUBLIC_DEFAULT_THEME: process.env.NEXT_PUBLIC_DEFAULT_THEME,

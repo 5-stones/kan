@@ -9,6 +9,7 @@ import {
   HiOutlineUserGroup,
   HiOutlineArrowRightCircle,
   HiOutlineStar,
+  HiOutlineFolder, // coraggio
 } from "react-icons/hi2";
 
 export type CardContextMenuAction =
@@ -19,7 +20,8 @@ export type CardContextMenuAction =
   | "copyLink"
   | "duplicate"
   | "delete"
-  | "star"; // coraggio
+  | "star" // coraggio
+  | "archive"; // coraggio
 
 interface CardContextMenuProps {
   x: number;
@@ -28,6 +30,7 @@ interface CardContextMenuProps {
   onAction: (action: CardContextMenuAction) => void;
   canEdit: boolean;
   starred?: boolean; // coraggio: when set, shows a Star/Unstar item
+  archiveLabel?: string; // coraggio: when set, shows an archive/restore item
 }
 
 const MENU_ITEMS: {
@@ -87,6 +90,7 @@ export function CardContextMenu({
   onAction,
   canEdit,
   starred,
+  archiveLabel,
 }: CardContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -114,6 +118,16 @@ export function CardContextMenu({
       action: "star",
       label: starred ? t`Unstar contact` : t`Star contact`,
       icon: <HiOutlineStar className="h-4 w-4 shrink-0" />,
+      requiresEdit: true,
+    });
+  }
+
+  // coraggio: move to the archive board (or back to the pipeline)
+  if (archiveLabel && canEdit) {
+    items.push({
+      action: "archive",
+      label: archiveLabel,
+      icon: <HiOutlineFolder className="h-4 w-4 shrink-0" />,
       requiresEdit: true,
     });
   }

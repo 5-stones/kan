@@ -38,13 +38,11 @@ import { CustomFields } from "./components/CustomFields";
 import { DeleteCardConfirmation } from "./components/DeleteCardConfirmation";
 import { DeleteChecklistConfirmation } from "./components/DeleteChecklistConfirmation";
 import { DeleteCommentConfirmation } from "./components/DeleteCommentConfirmation";
-import Dropdown from "./components/Dropdown";
 import { DueDateSelector } from "./components/DueDateSelector";
 import LabelSelector from "./components/LabelSelector";
 import ListSelector from "./components/ListSelector";
 import MemberSelector from "./components/MemberSelector";
 import { NewChecklistForm } from "./components/NewChecklistForm";
-import NewCommentForm from "./components/NewCommentForm";
 import { FieldHeader } from "./components/custom-fields/FieldHeader"; // coraggio
 import { CardPanelActions } from "../coraggio/CardPanelActions"; // coraggio
 import { useHideNspvAdmins } from "../coraggio/useHideNspvAdmins"; // coraggio
@@ -110,22 +108,6 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
   const dueDatePlaceholder = (
     customFieldsConfig?.sidebar?.fields?.["dueDate"] as BuiltinFieldOverride
   )?.placeholder;
-
-  // coraggio: moved here with the activity log / comment form
-  const editorWorkspaceMembers =
-    workspaceMembers
-      ?.filter((member) => member.email)
-      .map((member) => ({
-        publicId: member.publicId,
-        email: member.email,
-        user: member.user
-          ? {
-              id: member.user.id,
-              name: member.user.name ?? null,
-              image: member.user.image ?? null,
-            }
-          : null,
-      })) ?? [];
 
   const formattedLabels =
     labels?.map((label) => {
@@ -264,15 +246,8 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
             cardPublicId={cardId}
             isLoading={!card}
             isAdmin={workspace.role === "admin"}
+            hideComments /* coraggio: no comments in the activity log */
           />
-          {!isTemplate && (
-            <div className="mt-6">
-              <NewCommentForm
-                cardPublicId={cardId}
-                workspaceMembers={editorWorkspaceMembers}
-              />
-            </div>
-          )}
         </div>
       )}
     </div>
@@ -527,20 +502,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
               </div>
               {/* coraggio: on desktop these live in the right panel (CardPanelActions) */}
               <div className="flex items-center gap-2 md:hidden">
-                <Dropdown
-                  cardPublicId={cardId}
-                  isTemplate={isTemplate}
-                  boardPublicId={boardId}
-                  cardCreatedBy={card?.createdBy}
-                  ticketNumber={
-                    card.cardNumber != null &&
-                    card.list.board.workspace.cardPrefix
-                      ? `${card.list.board.workspace.cardPrefix}-${card.cardNumber}`
-                      : null
-                  }
-                  listPublicId={card?.list.publicId}
-                  cardIndex={card?.index}
-                />
+                {/* coraggio: no card menu (delete/archive from the board's right-click menu) */}
                 <Link
                   href={`/${isTemplate ? "templates" : "boards"}/${boardId}`}
                   className="flex h-7 w-7 items-center justify-center rounded-[5px] text-textMuted hover:bg-light-200 dark:text-textMutedDark dark:hover:bg-dark-200"

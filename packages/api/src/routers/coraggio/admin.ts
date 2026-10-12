@@ -9,6 +9,7 @@ import * as permissionRepo from "@kan/db/repository/permission.repo";
 import * as userRepo from "@kan/db/repository/user.repo";
 import * as workspaceRepo from "@kan/db/repository/workspace.repo";
 import { createLogger } from "@kan/logger";
+import { CORAGGIO_ARCHIVE_BOARD_SLUG } from "@kan/shared";
 import { generateSlug, generateUID } from "@kan/shared/utils";
 
 import { createTRPCRouter, protectedProcedure } from "../../trpc";
@@ -18,9 +19,12 @@ import {
   isCoraggioAdmin,
 } from "../../utils/coraggio/admin";
 import {
+  archiveBoardSnapshot,
   builtInTemplateSnapshot,
+  DEFAULT_ARCHIVE_BOARD,
   loadBuiltInBoardTemplate,
 } from "../../utils/coraggio/boardTemplate";
+import { splitMainAndArchiveBoards } from "../../utils/coraggio/boards";
 import { inviteWorkspaceMember } from "../../utils/coraggio/invite";
 import { applyVdRolePermissions } from "../../utils/coraggio/roles";
 import { assertPermission } from "../../utils/permissions";
@@ -61,6 +65,50 @@ async function addNspvAdmins(
       status: "active",
     });
   }
+}
+
+/** Archive board statuses from the built-in template, or the defaults. */
+function archiveBoardSpec() {
+  try {
+    return loadBuiltInBoardTemplate()?.archiveBoard ?? DEFAULT_ARCHIVE_BOARD;
+  } catch {
+    return DEFAULT_ARCHIVE_BOARD;
+  }
+}
+
+/**
+ * Creates the workspace's archive board (seminarians, non-candidates) unless it
+ * exists, copying labels and custom fields from the main board.
+ */
+async function ensureArchiveBoard(
+  db: dbClient,
+  workspaceId: number,
+  userId: string,
+) {
+  const { main, archive } = splitMainAndArchiveBoards(
+    await coraggioRepo.getWorkspaceBoardsWithLists(db, workspaceId),
+  );
+  if (archive || !main) return;
+
+  const mainBoard = await boardRepo.getByPublicId(db, main.publicId, userId, {
+    members: [],
+    labels: [],
+    lists: [],
+    dueDate: [],
+    type: "regular",
+  });
+  if (!mainBoard) return;
+
+  const spec = archiveBoardSpec();
+  await boardRepo.createFromSnapshot(db, {
+    source: archiveBoardSnapshot(spec, mainBoard),
+    workspaceId,
+    createdBy: userId,
+    slug: CORAGGIO_ARCHIVE_BOARD_SLUG,
+    name: spec.name,
+    type: "regular",
+    themeId: CORAGGIO_THEME_ID,
+  });
 }
 
 /** Snapshot to clone for a new diocese board: a template board, or the built-in template. */
@@ -137,7 +185,10 @@ export const coraggioAdminRouter = createTRPCRouter({
     };
   }),
 
-  /** Re-applies Coraggio role defaults (VD restrictions) and NSPV admin membership. */
+  /**
+   * Re-applies Coraggio defaults: VD role restrictions, NSPV admin membership,
+   * the archive board and the Sunday week start.
+   */
   applyDefaults: coraggioAdminProcedure
     .input(z.object({ workspacePublicId: z.string().min(12) }))
     .mutation(async ({ ctx, input }) => {
@@ -149,6 +200,9 @@ export const coraggioAdminRouter = createTRPCRouter({
 
       await applyVdRolePermissions(ctx.db, workspace.id);
       await addNspvAdmins(ctx.db, workspace.id, ctx.user!.id);
+      await ensureArchiveBoard(ctx.db, workspace.id, ctx.user!.id);
+      // weeks start on Sunday (the setting is hidden from VDs)
+      await workspaceRepo.update(ctx.db, workspace.publicId, { weekStartDay: 0 });
       return { success: true };
     }),
 
@@ -200,18 +254,25 @@ export const coraggioAdminRouter = createTRPCRouter({
         source,
         workspaceId: newWorkspace.id,
         createdBy: userId,
-        slug: generateSlug(input.boardName) || generateUID(),
+        slug:
+          [generateSlug(input.boardName)].find(
+            (slug) => slug && slug !== CORAGGIO_ARCHIVE_BOARD_SLUG,
+          ) ?? generateUID(),
         name: input.boardName,
         type: "regular",
         sourceBoardId,
         themeId: CORAGGIO_THEME_ID,
       });
 
-      // 3. Roles and NSPV admins
+      // 3. Archive board, and weeks starting on Sunday
+      await ensureArchiveBoard(ctx.db, newWorkspace.id, userId);
+      await workspaceRepo.update(ctx.db, workspacePublicId, { weekStartDay: 0 });
+
+      // 4. Roles and NSPV admins
       await applyVdRolePermissions(ctx.db, newWorkspace.id);
       await addNspvAdmins(ctx.db, newWorkspace.id, userId);
 
-      // 4. Invite VDs (as "member", the restricted VD role)
+      // 5. Invite VDs (as "member", the restricted VD role)
       const invites = await Promise.all(
         input.vdEmails.map(async (email) => {
           try {

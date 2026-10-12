@@ -3,14 +3,14 @@ import { t } from "@lingui/core/macro";
 import { HiXMark } from "react-icons/hi2";
 
 import type { RouterOutputs } from "~/utils/api";
-import Dropdown from "../card/components/Dropdown";
 import { StarToggle } from "./StarToggle";
 
 type Card = NonNullable<RouterOutputs["card"]["byId"]>;
 
 /**
- * Top-right of the contact detail sidebar: star, card menu, close.
- * On mobile the menu and close stay in the page header (the sidebar is a drawer there).
+ * Top-right of the contact detail sidebar: star and close (no card menu; contacts
+ * are deleted or archived from the board's right-click menu).
+ * On mobile the close button stays in the page header (the sidebar is a drawer there).
  */
 export function CardPanelActions({
   cardPublicId,
@@ -24,7 +24,6 @@ export function CardPanelActions({
   canEdit: boolean;
 }) {
   const board = card?.list.board;
-  const cardPrefix = board?.workspace.cardPrefix;
 
   return (
     <div className="card-detail-actions absolute right-6 top-6 z-10 flex items-center gap-1">
@@ -37,19 +36,6 @@ export function CardPanelActions({
       )}
       {card && (
         <div className="hidden items-center gap-1 md:flex">
-          <Dropdown
-            cardPublicId={cardPublicId}
-            isTemplate={isTemplate}
-            boardPublicId={board?.publicId}
-            cardCreatedBy={card.createdBy}
-            ticketNumber={
-              card.cardNumber != null && cardPrefix
-                ? `${cardPrefix}-${card.cardNumber}`
-                : null
-            }
-            listPublicId={card.list.publicId}
-            cardIndex={card.index}
-          />
           <Link
             href={`/${isTemplate ? "templates" : "boards"}/${board?.publicId}`}
             className="card-detail-close flex h-7 w-7 items-center justify-center rounded-[5px] text-textMuted hover:bg-light-200 dark:text-textMutedDark dark:hover:bg-dark-200"
