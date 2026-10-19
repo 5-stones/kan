@@ -69,6 +69,7 @@ import { BoardZoomToggle, useBoardZoom } from "../coraggio/BoardZoomToggle";
 import { CardContextArchiveModal } from "../coraggio/CardContextArchiveModal";
 import { HeaderSearch } from "../coraggio/HeaderSearch";
 import { NewContactButton } from "../coraggio/NewContactButton";
+import ReturnToDiscerners from "../coraggio/ReturnToDiscerners";
 import { useBoardSort } from "../coraggio/useBoardSort";
 import { useBoardsNav } from "../coraggio/useBoardsNav";
 import { findMatchingList } from "../coraggio/findMatchingList";
@@ -723,6 +724,12 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
           )}
           {boardData && boardData.name !== CORAGGIO_APP_NAME && (
             <div className="board-title order-2 md:order-1">
+              {/* coraggio: the archive board links back to the pipeline */}
+              {!isTemplate && boardId === boardsNav.archive?.publicId && (
+                <div className="mb-3">
+                  <ReturnToDiscerners className="" />
+                </div>
+              )}
               {/* coraggio: other boards (e.g. the archive) show the logo above their
                   name, so there's a way back with the sidebar collapsed; the theme
                   hides it while the sidebar shows the logo */}
