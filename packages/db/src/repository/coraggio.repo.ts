@@ -23,13 +23,14 @@ export const getUserSettings = async (db: dbClient, userId: string) => {
 
   return {
     emailNotificationsEnabled: row?.emailNotificationsEnabled ?? true,
+    timeZone: row?.timeZone ?? null,
   };
 };
 
 export const upsertUserSettings = async (
   db: dbClient,
   userId: string,
-  settings: { emailNotificationsEnabled: boolean },
+  settings: { emailNotificationsEnabled?: boolean; timeZone?: string | null },
 ) => {
   await db
     .insert(coraggioUserSettings)
@@ -40,6 +41,14 @@ export const upsertUserSettings = async (
     });
 
   return getUserSettings(db, userId);
+};
+
+/** Whether Postgres knows the time zone (the reminder query converts dates with it). */
+export const isKnownTimeZone = async (db: dbClient, timeZone: string) => {
+  const result = await db.execute(
+    sql`SELECT EXISTS (SELECT 1 FROM pg_timezone_names WHERE name = ${timeZone}) AS "known"`,
+  );
+  return (result.rows[0] as { known: boolean } | undefined)?.known === true;
 };
 
 /** Returns the subset of userIds that have opted out of automated emails. */
@@ -61,6 +70,32 @@ export const getEmailOptedOutUserIds = async (
 
   return new Set(rows.map((row) => row.userId));
 };
+
+/** Saved digest time zones by user id (users without one are left out). */
+export const getUserTimeZones = async (db: dbClient, userIds: string[]) => {
+  if (userIds.length === 0) return new Map<string, string>();
+
+  const rows = await db
+    .select({
+      userId: coraggioUserSettings.userId,
+      timeZone: coraggioUserSettings.timeZone,
+    })
+    .from(coraggioUserSettings)
+    .where(inArray(coraggioUserSettings.userId, userIds));
+
+  const timeZones = new Map<string, string>();
+  for (const row of rows) {
+    if (row.timeZone) timeZones.set(row.userId, row.timeZone);
+  }
+  return timeZones;
+};
+
+/** Title, follow-up date and customData for notification emails. */
+export const getCardForEmail = (db: dbClient, cardPublicId: string) =>
+  db.query.cards.findFirst({
+    columns: { title: true, dueDate: true, customData: true },
+    where: and(eq(cards.publicId, cardPublicId), isNull(cards.deletedAt)),
+  });
 
 /* -------------------------------------------------------------------- star */
 
@@ -163,73 +198,114 @@ export const getActiveMembersWithUsers = async (
 /* --------------------------------------------------------------- reminders */
 
 /**
- * Cards whose follow-up (due) date falls on `date` (YYYY-MM-DD) in `timeZone`,
- * with their active, assigned members.
+ * Follow-up reminder candidates: each active assignee (who hasn't opted out)
+ * of a contact whose follow-up date is between `maxDaysOverdue` days ago and
+ * today, in the assignee's time zone, once it's past `fromHour` there.
+ * Due dates are stored as the UTC instant of local midnight where they were set.
  */
-export const getCardsDueOn = async (
+export const getFollowUpReminderCandidates = async (
   db: dbClient,
-  date: string,
-  timeZone: string,
+  args: {
+    now: Date;
+    defaultTimeZone: string;
+    fromHour: number;
+    maxDaysOverdue: number;
+  },
 ) => {
+  const now = args.now.toISOString();
   const result = await db.execute(sql`
+    WITH candidates AS (
+      SELECT
+        c.id AS "cardId",
+        c."publicId" AS "cardPublicId",
+        c.title AS "cardTitle",
+        c."customData" AS "customData",
+        b."publicId" AS "boardPublicId",
+        b."workspaceId" AS "workspaceId",
+        wm."publicId" AS "memberPublicId",
+        u.id AS "userId",
+        u.email AS "email",
+        u.name AS "userName",
+        ((c."dueDate" AT TIME ZONE 'UTC') AT TIME ZONE tz.zone)::date AS due_on,
+        (${now}::timestamptz AT TIME ZONE tz.zone)::date AS today,
+        extract(hour FROM ${now}::timestamptz AT TIME ZONE tz.zone)::int AS local_hour
+      FROM card c
+      JOIN list l ON l.id = c."listId" AND l."deletedAt" IS NULL
+      JOIN board b ON b.id = l."boardId" AND b."deletedAt" IS NULL
+        AND b.type = 'regular' AND b."isArchived" = false
+      JOIN _card_workspace_members cwm ON cwm."cardId" = c.id
+      JOIN workspace_members wm ON wm.id = cwm."workspaceMemberId"
+        AND wm."deletedAt" IS NULL AND wm.status = 'active'
+      JOIN "user" u ON u.id = wm."userId"
+      LEFT JOIN coraggio_user_settings s ON s."userId" = u.id
+      CROSS JOIN LATERAL (SELECT COALESCE(s."timeZone", ${args.defaultTimeZone}) AS zone) tz
+      WHERE c."deletedAt" IS NULL
+        AND COALESCE(s."emailNotificationsEnabled", true)
+        -- index-friendly prefilter; the exact window is applied per time zone below
+        AND c."dueDate" BETWEEN ${now}::timestamptz - make_interval(days => ${args.maxDaysOverdue + 2})
+          AND ${now}::timestamptz + interval '2 days'
+    )
     SELECT
-      c.id AS "cardId",
-      c."publicId" AS "cardPublicId",
-      c.title AS "cardTitle",
-      c."dueDate" AS "dueDate",
-      c."customData" AS "customData",
-      b.name AS "boardName",
-      b."workspaceId" AS "workspaceId",
-      u.id AS "userId",
-      u.email AS "email",
-      u.name AS "userName"
-    FROM card c
-    JOIN list l ON l.id = c."listId" AND l."deletedAt" IS NULL
-    JOIN board b ON b.id = l."boardId" AND b."deletedAt" IS NULL
-      AND b.type = 'regular' AND b."isArchived" = false
-    JOIN _card_workspace_members cwm ON cwm."cardId" = c.id
-    JOIN workspace_members wm ON wm.id = cwm."workspaceMemberId"
-      AND wm."deletedAt" IS NULL AND wm.status = 'active'
-    JOIN "user" u ON u.id = wm."userId"
-    WHERE c."deletedAt" IS NULL
-      AND c."dueDate" IS NOT NULL
-      AND ((c."dueDate" AT TIME ZONE 'UTC') AT TIME ZONE ${timeZone})::date = ${date}::date
-    ORDER BY u.id, c.title
+      "cardId", "cardPublicId", "cardTitle", "customData", "boardPublicId",
+      "workspaceId", "memberPublicId", "userId", "email", "userName",
+      to_char(due_on, 'YYYY-MM-DD') AS "dueOn",
+      to_char(today, 'YYYY-MM-DD') AS "today",
+      (today - due_on) AS "daysOverdue"
+    FROM candidates
+    WHERE local_hour >= ${args.fromHour}
+      AND due_on BETWEEN today - ${args.maxDaysOverdue}::int AND today
+    ORDER BY "userId", "cardTitle"
   `);
 
   return result.rows as {
     cardId: number;
     cardPublicId: string;
     cardTitle: string;
-    dueDate: string;
     customData: Record<string, unknown> | null;
-    boardName: string;
+    boardPublicId: string;
     workspaceId: number;
+    memberPublicId: string;
     userId: string;
     email: string;
     userName: string | null;
+    dueOn: string;
+    today: string;
+    daysOverdue: number;
   }[];
 };
 
-/** Whether a follow-up reminder for this user/card/date was already recorded. */
-export const dueReminderExists = async (
+/**
+ * Follow-up reminders already sent to these users, as
+ * `${type}:${userId}:${cardId}:${metadata}` keys.
+ */
+export const getSentFollowUpReminderKeys = async (
   db: dbClient,
-  args: { userId: string; cardId: number; date: string },
+  userIds: string[],
 ) => {
-  const row = await db.query.notifications.findFirst({
-    columns: { id: true },
-    where: and(
-      eq(notifications.userId, args.userId),
-      eq(notifications.cardId, args.cardId),
-      eq(notifications.type, "card.due_reminder"),
-      eq(notifications.metadata, JSON.stringify({ date: args.date })),
+  if (userIds.length === 0) return new Set<string>();
+
+  const rows = await db
+    .select({
+      type: notifications.type,
+      userId: notifications.userId,
+      cardId: notifications.cardId,
+      metadata: notifications.metadata,
+    })
+    .from(notifications)
+    .where(
+      and(
+        inArray(notifications.userId, userIds),
+        inArray(notifications.type, ["card.due_reminder", "card.overdue_reminder"]),
+        sql`${notifications.createdAt} > now() - interval '30 days'`,
+      ),
+    );
+
+  return new Set(
+    rows.map(
+      (row) => `${row.type}:${row.userId}:${row.cardId}:${row.metadata}`,
     ),
-  });
-
-  return !!row;
+  );
 };
-
-/* ------------------------------------------------------------------ export */
 
 export const getBoardForExport = (db: dbClient, boardPublicId: string) => {
   return db.query.boards.findFirst({

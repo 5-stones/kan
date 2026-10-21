@@ -7,6 +7,13 @@ import * as notificationRepo from "@kan/db/repository/notification.repo";
 import * as userRepo from "@kan/db/repository/user.repo";
 import { sendEmail } from "@kan/email";
 import { createLogger } from "@kan/logger";
+import { getContactParish } from "@kan/shared";
+
+import {
+  formatLongDate,
+  getReminderTimeZone,
+  toIsoDateInTimeZone,
+} from "./reminders";
 
 const log = createLogger("coraggio-assignment");
 
@@ -35,14 +42,12 @@ export async function sendAssignmentEmails({
     );
     if (recipients.length === 0) return;
 
-    const optedOut = await coraggioRepo.getEmailOptedOutUserIds(
-      db,
-      recipients.map((member) => member.user!.id),
-    );
-
-    const [card, cardDetail, actor] = await Promise.all([
+    const recipientIds = recipients.map((member) => member.user!.id);
+    const [optedOut, timeZones, card, cardDetail, actor] = await Promise.all([
+      coraggioRepo.getEmailOptedOutUserIds(db, recipientIds),
+      coraggioRepo.getUserTimeZones(db, recipientIds),
       cardRepo.getWorkspaceAndCardIdByCardPublicId(db, cardPublicId),
-      cardRepo.getByPublicId(db, cardPublicId),
+      coraggioRepo.getCardForEmail(db, cardPublicId),
       userRepo.getById(db, actorUserId),
     ]);
     if (!card || !cardDetail) return;
@@ -50,11 +55,24 @@ export async function sendAssignmentEmails({
     const assignerName = actor?.name?.trim() || actor?.email || "Someone";
     const cardUrl = `${env("NEXT_PUBLIC_BASE_URL")}/cards/${cardPublicId}`;
     const contactName = cardDetail.title;
+    const parish = getContactParish(
+      cardDetail.customData as Record<string, unknown> | null,
+    );
 
     await Promise.all(
       recipients.map(async (member) => {
         const user = member.user!;
         if (optedOut.has(user.id)) return;
+
+        // Follow-up dates are calendar days; show the day in the recipient's time zone
+        const followUpDate = cardDetail.dueDate
+          ? formatLongDate(
+              toIsoDateInTimeZone(
+                cardDetail.dueDate,
+                timeZones.get(user.id) ?? getReminderTimeZone(),
+              ),
+            )
+          : "";
 
         try {
           await notificationRepo.create(db, {
@@ -66,12 +84,13 @@ export async function sendAssignmentEmails({
 
           await sendEmail(
             user.email,
-            `${assignerName} assigned you to ${contactName}`,
+            `${assignerName} assigned ${contactName} to you`,
             "CORAGGIO_CARD_ASSIGNED",
             {
               assignerName,
               contactName,
-              boardName: card.boardName,
+              parish,
+              followUpDate,
               cardUrl,
             },
           );
@@ -88,4 +107,3 @@ export async function sendAssignmentEmails({
     log.error({ err: error, cardPublicId }, "Error sending assignment emails");
   }
 }
-

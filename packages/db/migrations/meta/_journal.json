@@ -281,6 +281,13 @@
       "when": 1790698839583,
       "tag": "20260929162039_CoraggioMvp",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1792604091395,
+      "tag": "20261021173451_CoraggioEmails",
+      "breakpoints": true
     }
   ]
 }

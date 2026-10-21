@@ -17,6 +17,7 @@ import {
 import { updateSubscriptionSeats } from "@kan/stripe";
 
 import { memberInviteResponseSchema } from "../schemas";
+import { sendAccessRemovedEmail } from "../utils/coraggio/accessRemoved"; // coraggio
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import {
   assertCanManageMember,
@@ -248,6 +249,14 @@ export const memberRouter = createTRPCRouter({
           message: `Failed to delete member with public ID ${input.memberPublicId}`,
           code: "INTERNAL_SERVER_ERROR",
         });
+
+      // coraggio: tell the removed member they lost access
+      void sendAccessRemovedEmail({
+        db: ctx.db,
+        member,
+        workspaceName: workspace.name,
+        actorUserId: userId,
+      });
 
       // Handle subscription seat decrement for cloud environment
       if (process.env.NEXT_PUBLIC_KAN_ENV === "cloud") {

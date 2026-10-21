@@ -45,6 +45,12 @@ export function getFollowUpTask(customData: CustomData): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+/** Home parish (`spiritual.homeParish`), shown next to the contact's name in emails. */
+export function getContactParish(customData: CustomData): string {
+  const value = getCustomDataValue(customData, "spiritual", "homeParish");
+  return typeof value === "string" ? value.trim() : "";
+}
+
 /** Starred contacts are flagged at customData.meta.starred (not a configurable section). */
 export function isCardStarred(customData: CustomData): boolean {
   return getCustomDataValue(customData, "meta", "starred") === true;

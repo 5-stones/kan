@@ -236,9 +236,10 @@ export function createPlugins(db: dbClient) {
 
             await sendEmail(
               email,
+              // coraggio: invite subject
               workspaceName
-                ? `Invitation to join the workspace ${workspaceName}`
-                : "Invitation to join workspace",
+                ? `Join the ${workspaceName} pipeline on coragg.io`
+                : "Your coragg.io invitation",
               "JOIN_WORKSPACE",
               {
                 magicLoginUrl: url,
@@ -249,9 +250,7 @@ export function createPlugins(db: dbClient) {
           } else {
             await sendEmail(
               email,
-              process.env.NEXT_PUBLIC_WHITE_LABEL_HIDE_POWERED_BY === "true"
-                ? "Sign in to your account"
-                : "Sign in to Kan",
+              "Sign in to coragg.io", // coraggio: sign-in subject
               "MAGIC_LINK",
               {
                 magicLoginUrl: url,

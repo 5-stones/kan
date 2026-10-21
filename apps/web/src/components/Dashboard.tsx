@@ -19,6 +19,7 @@ import { useWorkspace, WorkspaceProvider } from "~/providers/workspace";
 import { api } from "~/utils/api";
 import { ThemeInjector } from "~/components/ThemeInjector";
 import { ChangePasswordFormConfirmation } from "~/views/settings/components/ChangePasswordConfirmation";
+import { useSyncDigestTimeZone } from "~/views/coraggio/useSyncDigestTimeZone"; // coraggio
 import Button from "./Button";
 import Modal from "./modal";
 import SideNavigation from "./SideNavigation";
@@ -69,6 +70,8 @@ export default function Dashboard({
       enabled: !!session?.user,
     },
   );
+  // coraggio: save the browser's time zone for the daily follow-up digest
+  useSyncDigestTimeZone(!!session?.user);
 
   const [isSideNavOpen, setIsSideNavOpen] = useState(false);
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);

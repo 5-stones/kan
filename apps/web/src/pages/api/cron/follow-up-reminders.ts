@@ -1,4 +1,4 @@
-// Coraggio: daily follow-up reminder emails, triggered by a scheduler (k8s CronJob).
+// Coraggio: follow-up digest and overdue emails, triggered hourly by a scheduler (k8s CronJob).
 import { timingSafeEqual } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { env } from "next-runtime-env";
