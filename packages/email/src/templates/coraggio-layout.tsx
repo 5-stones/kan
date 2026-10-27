@@ -5,6 +5,7 @@ import { Head } from "@react-email/head";
 import { Heading } from "@react-email/heading";
 import { Hr } from "@react-email/hr";
 import { Html } from "@react-email/html";
+import { Img } from "@react-email/img";
 import { Link } from "@react-email/link";
 import { Preview } from "@react-email/preview";
 import { Section } from "@react-email/section";
@@ -22,6 +23,10 @@ export const colours = {
   muted: "#a8a29a",
   rule: "#5c5750",
 };
+
+// Logo and partner footer (docs/designs/Logo.png, Email - footer.png), served from apps/web/public
+const imageUrl = (name: string) =>
+  `${env("NEXT_PUBLIC_BASE_URL")}/coraggio/email/${name}`;
 
 // Altivo (the app font) is an Adobe font, so emails fall back to system fonts
 const fontFamily =
@@ -168,18 +173,13 @@ export const CoraggioEmailLayout = ({
           padding: "40px 28px 0",
         }}
       >
-        <Text
-          style={{
-            fontSize: "44px",
-            lineHeight: "1",
-            fontWeight: "bold",
-            letterSpacing: "-0.5px",
-            color: colours.text,
-            margin: "0 0 64px",
-          }}
-        >
-          coragg.io
-        </Text>
+        <Img
+          src={imageUrl("logo.png")}
+          alt="coragg.io"
+          width="185"
+          height="44"
+          style={{ margin: "0 0 64px" }}
+        />
         <Text
           style={{
             fontSize: "14px",
@@ -236,23 +236,12 @@ export const CoraggioEmailLayout = ({
         }}
       />
       <Container style={{ maxWidth: "600px", margin: "0 auto" }}>
-        <Text
-          style={{
-            ...finePrintStyle,
-            fontSize: "12px",
-            letterSpacing: "1px",
-            textTransform: "uppercase",
-            color: colours.text,
-            padding: "32px 0 40px",
-            margin: "0",
-          }}
-        >
-          National Society for Priestly Vocations
-          <span style={{ color: colours.gold, fontSize: "20px" }}>
-            {"\u00a0\u00a0+\u00a0\u00a0"}
-          </span>
-          5 Stones
-        </Text>
+        <Img
+          src={imageUrl("footer.png")}
+          alt="National Society for Priestly Vocations + 5 Stones"
+          width="600"
+          style={{ width: "100%", height: "auto" }}
+        />
       </Container>
     </Body>
   </Html>

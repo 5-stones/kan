@@ -11,8 +11,8 @@ export const CoraggioMagicLinkTemplate = ({
   <CoraggioEmailLayout
     preview="Your coragg.io sign-in link"
     eyebrow="Sign in"
-    headline="Use this link to sign in to coragg.io."
-    buttonText="Sign in"
+    headline="Click below to sign in."
+    buttonText="coragg.io"
     buttonUrl={magicLoginUrl}
     finePrint="Didn't request this? You can ignore this email."
   />

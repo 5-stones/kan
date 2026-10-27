@@ -27,7 +27,6 @@ export const CoraggioInviteTemplate = ({
       }
       buttonText="Join coragg.io"
       buttonUrl={magicLoginUrl}
-      finePrint="Not expecting this? You can ignore this email."
     />
   );
 };

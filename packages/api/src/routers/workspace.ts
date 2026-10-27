@@ -17,6 +17,7 @@ import {
   workspaceWithBoardsSchema,
 } from "../schemas";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
+import { hideNspvAdminMembers } from "../utils/coraggio/admin"; // coraggio
 import { assertPermission } from "../utils/permissions";
 
 export const workspaceRouter = createTRPCRouter({
@@ -91,7 +92,8 @@ export const workspaceRouter = createTRPCRouter({
 
       // Generate presigned URLs for member avatars
       const membersWithAvatarUrls = await Promise.all(
-        result.members.map(async (member) => {
+        // coraggio: NSPV admins are listed only for NSPV admins
+        hideNspvAdminMembers(result.members, ctx.user).map(async (member) => {
           if (!member.user?.image) {
             return member;
           }
