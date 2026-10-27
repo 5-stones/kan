@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 import { HiXMark } from "react-icons/hi2";
 import { z } from "zod";
 
+import { CORAGGIO_BUILT_IN_TEMPLATE_ID } from "@kan/shared"; // coraggio
+
 import type { Template } from "./TemplateBoards";
 import Button from "~/components/Button";
 import Input from "~/components/Input";
@@ -43,13 +45,27 @@ export function NewBoardForm({ isTemplate }: { isTemplate?: boolean }) {
     { enabled: !!workspace.publicId },
   );
 
-  const formattedTemplates = templates?.map((template) => ({
-    id: template.publicId,
-    sourceBoardPublicId: template.publicId,
-    name: template.name,
-    lists: template.lists.map((list) => list.name),
-    labels: template.labels.map((label) => label.name),
-  }));
+  // coraggio: the built-in "coragg.io" template (templates/coraggio.yml) comes first
+  const { data: builtInTemplate } =
+    api.coraggio.boards.builtInTemplate.useQuery();
+  const formattedTemplates = [
+    ...(builtInTemplate
+      ? [
+          {
+            id: CORAGGIO_BUILT_IN_TEMPLATE_ID,
+            sourceBoardPublicId: CORAGGIO_BUILT_IN_TEMPLATE_ID,
+            ...builtInTemplate,
+          },
+        ]
+      : []),
+    ...(templates ?? []).map((template) => ({
+      id: template.publicId,
+      sourceBoardPublicId: template.publicId,
+      name: template.name,
+      lists: template.lists.map((list) => list.name),
+      labels: template.labels.map((label) => label.name),
+    })),
+  ];
 
   const {
     register,
@@ -146,7 +162,7 @@ export function NewBoardForm({ isTemplate }: { isTemplate?: boolean }) {
         currentBoard={currentTemplate}
         setCurrentBoard={(t) => setValue("template", t)}
         showTemplates={showTemplates}
-        customTemplates={formattedTemplates ?? []}
+        customTemplates={formattedTemplates}
       />
       <div className="mt-12 flex items-center justify-end space-x-4 border-t border-light-600 px-5 pb-5 pt-5 dark:border-dark-600">
         {!isTemplate && (
@@ -156,7 +172,7 @@ export function NewBoardForm({ isTemplate }: { isTemplate?: boolean }) {
             onChange={() => {
               setShowTemplates(!showTemplates);
               if (!showTemplates && !currentTemplate) {
-                setValue("template", (templates?.[0] as any) ?? null);
+                setValue("template", formattedTemplates[0] ?? null); // coraggio
               }
             }}
           />

@@ -9,7 +9,7 @@ import * as permissionRepo from "@kan/db/repository/permission.repo";
 import * as userRepo from "@kan/db/repository/user.repo";
 import * as workspaceRepo from "@kan/db/repository/workspace.repo";
 import { createLogger } from "@kan/logger";
-import { CORAGGIO_ARCHIVE_BOARD_SLUG } from "@kan/shared";
+import { CORAGGIO_ARCHIVE_BOARD_SLUG, CORAGGIO_THEME_ID } from "@kan/shared";
 import { generateSlug, generateUID } from "@kan/shared/utils";
 
 import { createTRPCRouter, protectedProcedure } from "../../trpc";
@@ -32,7 +32,6 @@ import { assertPermission } from "../../utils/permissions";
 const log = createLogger("coraggio-admin");
 
 /** Built-in runtime theme key (themes/coraggio.yaml in the coraggio repo, via KAN_THEMES_DIR). */
-const CORAGGIO_THEME_ID = "coraggio";
 
 /** Adds every other NSPV admin with an account to the workspace as an active admin. */
 async function addNspvAdmins(

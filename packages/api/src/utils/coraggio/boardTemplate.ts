@@ -4,8 +4,14 @@ import { TRPCError } from "@trpc/server";
 import yaml from "js-yaml";
 import { z } from "zod";
 
-import { parseCustomFieldsConfig } from "@kan/shared";
-import { generateUID } from "@kan/shared/utils";
+import type { dbClient } from "@kan/db/client";
+import * as boardRepo from "@kan/db/repository/board.repo";
+import {
+  CORAGGIO_ARCHIVE_BOARD_SLUG,
+  CORAGGIO_THEME_ID,
+  parseCustomFieldsConfig,
+} from "@kan/shared";
+import { generateSlug, generateUID } from "@kan/shared/utils";
 
 const BoardTemplateFileSchema = z.object({
   name: z.string().min(1),
@@ -99,6 +105,46 @@ export function builtInTemplateSnapshot(template: BuiltInBoardTemplate) {
     })),
     lists: template.lists.map((name, index) => ({ name, index, cards: [] })),
   };
+}
+
+/**
+ * A board (or template) built from the built-in template file, for board.create
+ * when the "coragg.io" template is picked: statuses, coloured labels, custom
+ * fields and the coragg.io theme, like an onboarded diocese's board.
+ */
+export async function createBoardFromBuiltInTemplate(
+  db: dbClient,
+  args: {
+    workspaceId: number;
+    createdBy: string;
+    name: string;
+    type: "regular" | "template";
+  },
+) {
+  const template = loadBuiltInBoardTemplate();
+  if (!template) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "No built-in board template is configured (CORAGGIO_BOARD_TEMPLATE)",
+    });
+  }
+
+  // same rules as board.create, and never the archive board's slug
+  let slug = generateSlug(args.name);
+  const isSlugUnique =
+    slug !== CORAGGIO_ARCHIVE_BOARD_SLUG &&
+    (await boardRepo.isSlugUnique(db, { slug, workspaceId: args.workspaceId }));
+  if (!isSlugUnique || args.type === "template") slug = `${slug}-${generateUID()}`;
+
+  return boardRepo.createFromSnapshot(db, {
+    source: builtInTemplateSnapshot(template),
+    workspaceId: args.workspaceId,
+    createdBy: args.createdBy,
+    slug,
+    name: args.name,
+    type: args.type,
+    themeId: CORAGGIO_THEME_ID,
+  });
 }
 
 /**

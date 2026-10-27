@@ -5,10 +5,23 @@ import * as coraggioRepo from "@kan/db/repository/coraggio.repo";
 import * as workspaceRepo from "@kan/db/repository/workspace.repo";
 
 import { createTRPCRouter, protectedProcedure } from "../../trpc";
+import { loadBuiltInBoardTemplate } from "../../utils/coraggio/boardTemplate";
 import { splitMainAndArchiveBoards } from "../../utils/coraggio/boards";
 import { assertPermission } from "../../utils/permissions";
 
 export const coraggioBoardsRouter = createTRPCRouter({
+  /** The built-in board template's statuses and labels, for the new board form; null when not configured. */
+  builtInTemplate: protectedProcedure.query(() => {
+    const template = loadBuiltInBoardTemplate();
+    return (
+      template && {
+        name: template.name,
+        lists: template.lists,
+        labels: template.labels.map((label) => label.name),
+      }
+    );
+  }),
+
   /** The diocese's main board and archive board (with lists), for navigation and archiving. */
   nav: protectedProcedure
     .input(z.object({ workspacePublicId: z.string().min(12) }))

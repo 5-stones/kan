@@ -8,7 +8,7 @@ import * as labelRepo from "@kan/db/repository/label.repo";
 import * as listRepo from "@kan/db/repository/list.repo";
 import * as workspaceRepo from "@kan/db/repository/workspace.repo";
 import { colours } from "@kan/shared/constants";
-import { parseCustomFieldsConfig } from "@kan/shared";
+import { CORAGGIO_BUILT_IN_TEMPLATE_ID, parseCustomFieldsConfig } from "@kan/shared";
 import {
   convertDueDateFiltersToRanges,
   generateAvatarUrl,
@@ -24,6 +24,7 @@ import {
   boardCreateResponseSchema,
   boardUpdateResponseSchema,
 } from "../schemas";
+import { createBoardFromBuiltInTemplate } from "../utils/coraggio/boardTemplate"; // coraggio
 import { assertCanDelete, assertCanEdit, assertPermission } from "../utils/permissions";
 
 export const boardRouter = createTRPCRouter({
@@ -330,6 +331,15 @@ export const boardRouter = createTRPCRouter({
         });
 
       await assertPermission(ctx.db, userId, workspace.id, "board:create");
+
+      // coraggio: the "coragg.io" template comes from the built-in template file
+      if (input.sourceBoardPublicId === CORAGGIO_BUILT_IN_TEMPLATE_ID)
+        return createBoardFromBuiltInTemplate(ctx.db, {
+          workspaceId: workspace.id,
+          createdBy: userId,
+          name: input.name,
+          type: input.type ?? "regular",
+        });
 
       // If sourceBoardPublicId is provided, clone the source board
       if (input.sourceBoardPublicId) {

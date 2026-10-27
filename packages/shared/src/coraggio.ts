@@ -29,6 +29,15 @@ export function getCoraggioSourceCodeUrl(commit?: string | null): string {
 /** Support and feedback address (user menu, account deletion requests). */
 export const CORAGGIO_SUPPORT_EMAIL = "support@coragg.io";
 
+/** Runtime theme (themes/coraggio.yaml) given to diocese workspaces and their boards. */
+export const CORAGGIO_THEME_ID = "coraggio";
+
+/**
+ * Stands in for a source board in board.create: build the board from the built-in
+ * template file (CORAGGIO_BOARD_TEMPLATE) instead of cloning a template board.
+ */
+export const CORAGGIO_BUILT_IN_TEMPLATE_ID = "coraggio-built-in-template";
+
 /** Slug of the per-diocese archive board (seminarians and non-candidates). */
 export const CORAGGIO_ARCHIVE_BOARD_SLUG = "archive";
 
