@@ -14,8 +14,10 @@ import CommandPallette from "./CommandPallette";
 
 export default function WorkspaceMenu({
   isCollapsed = false,
+  canCreateWorkspace = true, // coraggio
 }: {
   isCollapsed?: boolean;
+  canCreateWorkspace?: boolean;
 }) {
   const { workspace, isLoading, availableWorkspaces, switchWorkspace } =
     useWorkspace();
@@ -138,8 +140,8 @@ export default function WorkspaceMenu({
                 </div>
               ))}
             </div>
-            <div className="border-t-[1px] border-light-600 p-1 dark:border-dark-500">
-              <Menu.Item>
+            <div className={`${canCreateWorkspace ? "" : "hidden " /* coraggio */}border-t-[1px] border-light-600 p-1 dark:border-dark-500`}>
+              <Menu.Item disabled={!canCreateWorkspace /* coraggio */}>
                 <button
                   onClick={() => {
                     if (env("NEXT_PUBLIC_KAN_ENV") !== "cloud") {

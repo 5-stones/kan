@@ -55,7 +55,7 @@ export default function SideNavigation({
   onCloseSideNav,
 }: SideNavigationProps) {
   const router = useRouter();
-  const { workspace } = useWorkspace();
+  const { workspace, availableWorkspaces } = useWorkspace(); // coraggio: availableWorkspaces
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isInitialised, setIsInitialised] = useState(false);
 
@@ -234,8 +234,14 @@ export default function SideNavigation({
           </div>
           <div className="sidebar-divider mx-1 mb-4 hidden w-auto border-b border-border dark:border-borderDark md:block" />
 
-          {/* coraggio: only NSPV admins switch between dioceses */}
-          {isNspvAdmin && <WorkspaceMenu isCollapsed={isCollapsed} />}
+          {/* coraggio: only NSPV admins and members of several dioceses switch
+              between them; only NSPV admins create them */}
+          {(isNspvAdmin || availableWorkspaces.length > 1) && (
+            <WorkspaceMenu
+              isCollapsed={isCollapsed}
+              canCreateWorkspace={isNspvAdmin}
+            />
+          )}
           <ul role="list" className="sidebar-nav space-y-1">
             {navigation
               .filter((item) => !hiddenNavSlugs.includes(item.slug)) // coraggio
