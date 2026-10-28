@@ -70,6 +70,7 @@ import { CardContextArchiveModal } from "../coraggio/CardContextArchiveModal";
 import { HeaderSearch } from "../coraggio/HeaderSearch";
 import { NewContactButton } from "../coraggio/NewContactButton";
 import ReturnToDiscerners from "../coraggio/ReturnToDiscerners";
+import { useCardLongPress } from "../coraggio/useCardLongPress";
 import { useBoardSort } from "../coraggio/useBoardSort";
 import { useBoardsNav } from "../coraggio/useBoardsNav";
 import { findMatchingList } from "../coraggio/findMatchingList";
@@ -100,6 +101,10 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
     y: number;
     cardPublicId: string;
   } | null>(null);
+  // coraggio: long-press opens the card menu on touch screens
+  const cardLongPress = useCardLongPress((cardPublicId, x, y) =>
+    setContextMenu({ x, y, cardPublicId }),
+  );
 
   const { ref: scrollRef, onMouseDown } = useDragToScroll({
     enabled: true,
@@ -957,6 +962,9 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                                               cardPublicId: card.publicId,
                                             });
                                           }}
+                                          {...(card.publicId.startsWith("PLACEHOLDER")
+                                            ? {}
+                                            : cardLongPress(card.publicId)) /* coraggio */}
                                           key={card.publicId}
                                           href={
                                             isTemplate

@@ -180,7 +180,7 @@ function WorkspaceList() {
         <thead className="text-neutral-500 dark:text-dark-900">
           <tr>
             <th className="py-2 pr-4 font-medium">{t`Workspace`}</th>
-            <th className="py-2 pr-4 font-medium">{t`Boards`}</th>
+            <th className="hidden py-2 pr-4 font-medium sm:table-cell">{t`Boards`}</th>
             <th className="py-2 pr-4 font-medium">{t`Members`}</th>
             <th className="py-2 font-medium" />
           </tr>
@@ -189,15 +189,19 @@ function WorkspaceList() {
           {workspaces?.map((workspace) => {
             const active = workspace.members.filter((m) => m.status === "active").length;
             const invited = workspace.members.filter((m) => m.status === "invited").length;
+            const boards =
+              workspace.boards
+                .filter((board) => board.type === "regular")
+                .map((board) => board.name)
+                .join(", ") || "—";
             return (
               <tr key={workspace.publicId} className="border-t border-light-300 dark:border-dark-300">
-                <td className="py-2 pr-4">{workspace.name}</td>
                 <td className="py-2 pr-4">
-                  {workspace.boards
-                    .filter((board) => board.type === "regular")
-                    .map((board) => board.name)
-                    .join(", ") || "—"}
+                  {workspace.name}
+                  {/* phones: boards under the name instead of their own column */}
+                  <div className="text-xs text-neutral-500 dark:text-dark-900 sm:hidden">{boards}</div>
                 </td>
+                <td className="hidden py-2 pr-4 sm:table-cell">{boards}</td>
                 <td className="py-2 pr-4">
                   {active}
                   {invited ? ` (+${invited} ${t`invited`})` : ""}

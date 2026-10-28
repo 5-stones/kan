@@ -1,5 +1,5 @@
 import { t } from "@lingui/core/macro";
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react"; // coraggio: useLayoutEffect, useState
 import {
   HiLink,
   HiOutlineCalendar,
@@ -93,6 +93,17 @@ export function CardContextMenu({
   archiveLabel,
 }: CardContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
+  // coraggio: keep the menu on screen (a long-press near a phone's right edge)
+  const [position, setPosition] = useState({ left: x, top: y });
+  useLayoutEffect(() => {
+    const rect = menuRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const margin = 8;
+    setPosition({
+      left: Math.max(margin, Math.min(x, window.innerWidth - rect.width - margin)),
+      top: Math.max(margin, Math.min(y, window.innerHeight - rect.height - margin)),
+    });
+  }, [x, y]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -136,7 +147,7 @@ export function CardContextMenu({
     <div
       ref={menuRef}
       className="fixed z-[200] min-w-[200px] rounded-md border border-light-200 bg-white py-1 shadow-lg dark:border-dark-400 dark:bg-dark-200"
-      style={{ left: x, top: y }}
+      style={position /* coraggio */}
     >
       {items.map(({ action, label, icon }) => (
         <button

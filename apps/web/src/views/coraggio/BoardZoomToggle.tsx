@@ -2,17 +2,24 @@ import { t } from "@lingui/core/macro";
 import { useCallback, useEffect, useState } from "react";
 import { HiOutlineMinusCircle, HiOutlinePlusCircle } from "react-icons/hi2";
 
-const storageKey = "coraggio:boardCompact";
+// phones keep their own setting and start zoomed out (more statuses on screen)
+const phoneQuery = "(max-width: 767px)";
+const storageKeyFor = (phone: boolean) =>
+  phone ? "coraggio:boardCompact:phone" : "coraggio:boardCompact";
 
 /** Pipeline (zoomed-out) board view: every status at once, contacts by name only. */
 export function useBoardZoom() {
   const [compact, setCompact] = useState(false);
+  const [phone, setPhone] = useState(false);
 
   useEffect(() => {
+    const isPhone = window.matchMedia(phoneQuery).matches;
+    setPhone(isPhone);
     try {
-      setCompact(window.localStorage.getItem(storageKey) === "1");
+      const stored = window.localStorage.getItem(storageKeyFor(isPhone));
+      setCompact(stored === null ? isPhone : stored === "1");
     } catch {
-      // storage unavailable
+      setCompact(isPhone); // storage unavailable
     }
   }, []);
 
@@ -20,13 +27,13 @@ export function useBoardZoom() {
     setCompact((previous) => {
       const next = !previous;
       try {
-        window.localStorage.setItem(storageKey, next ? "1" : "0");
+        window.localStorage.setItem(storageKeyFor(phone), next ? "1" : "0");
       } catch {
         // storage unavailable; keep the in-memory value
       }
       return next;
     });
-  }, []);
+  }, [phone]);
 
   return { compact, toggle };
 }
@@ -49,7 +56,7 @@ export function BoardZoomToggle({
       aria-label={label}
       aria-pressed={compact}
       title={label}
-      className="board-zoom-toggle absolute bottom-6 right-6 z-20 hidden h-11 w-11 items-center justify-center rounded-full text-light-1000 hover:opacity-80 focus-visible:outline-none dark:text-dark-1000 md:flex"
+      className="board-zoom-toggle absolute bottom-6 right-6 z-20 flex h-11 w-11 items-center justify-center rounded-full text-light-1000 hover:opacity-80 focus-visible:outline-none dark:text-dark-1000"
     >
       <Icon className="h-11 w-11" strokeWidth={1.5} />
     </button>
