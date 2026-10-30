@@ -34,6 +34,7 @@ import { usePermissions } from "~/hooks/usePermissions"; // coraggio
 import { useAdminNavItems } from "~/views/coraggio/admin/useAdminNavItem"; // coraggio
 import AppLogo from "~/views/coraggio/AppLogo"; // coraggio
 import SidebarExportButton from "~/views/coraggio/SidebarExportButton"; // coraggio
+import SidebarFeedbackLink from "~/views/coraggio/SidebarFeedbackLink"; // coraggio
 import { useArchiveNavItems } from "~/views/coraggio/useArchiveNavItems"; // coraggio
 import { useIsNspvAdmin } from "~/views/coraggio/useIsNspvAdmin"; // coraggio
 
@@ -264,6 +265,7 @@ export default function SideNavigation({
               </li>
             ))}
             <SidebarExportButton isCollapsed={isCollapsed} /* coraggio */ />
+            <SidebarFeedbackLink isCollapsed={isCollapsed} /* coraggio */ />
           </ul>
         </div>
 

@@ -29,6 +29,10 @@ export function getCoraggioSourceCodeUrl(commit?: string | null): string {
 /** Support and feedback address (user menu, account deletion requests). */
 export const CORAGGIO_SUPPORT_EMAIL = "support@coragg.io";
 
+/** Beta feedback form (Teamwork), linked from the sidebar. */
+export const CORAGGIO_FEEDBACK_FORM_URL =
+  "https://5stones.teamwork.com/app/public/forms/amNpvkHNW33Zwk0B8eq";
+
 /** Runtime theme (themes/coraggio.yaml) given to diocese workspaces and their boards. */
 export const CORAGGIO_THEME_ID = "coraggio";
 
