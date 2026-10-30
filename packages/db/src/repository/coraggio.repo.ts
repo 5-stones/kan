@@ -4,8 +4,10 @@ import { and, asc, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm
 import type { dbClient } from "@kan/db/client";
 import {
   boards,
+  cardActivities,
   cards,
   cardsToLabels,
+  cardToWorkspaceMembers,
   coraggioUserSettings,
   labels,
   lists,
@@ -13,6 +15,7 @@ import {
   workspaceMembers,
   workspaces,
 } from "@kan/db/schema";
+import { generateUID } from "@kan/shared/utils";
 
 /* ---------------------------------------------------------------- settings */
 
@@ -355,6 +358,154 @@ export const getBoardContactsForExport = async (
         },
       },
     },
+  });
+};
+
+/* ------------------------------------------------------------------ import */
+
+/** Labels, assignable members and existing contact names for validating a CSV import. */
+export const getImportContext = async (
+  db: dbClient,
+  workspaceId: number,
+  boardIds: number[],
+) => {
+  const [boardLabels, members, existing] = await Promise.all([
+    boardIds.length
+      ? db
+          .select({ id: labels.id, name: labels.name, boardId: labels.boardId })
+          .from(labels)
+          .where(and(inArray(labels.boardId, boardIds), isNull(labels.deletedAt)))
+      : [],
+    db.query.workspaceMembers.findMany({
+      columns: { id: true, email: true },
+      where: and(
+        eq(workspaceMembers.workspaceId, workspaceId),
+        inArray(workspaceMembers.status, ["active", "invited"]),
+        isNull(workspaceMembers.deletedAt),
+      ),
+      with: { user: { columns: { name: true, email: true } } },
+    }),
+    db
+      .selectDistinct({ name: sql<string>`lower(trim(${cards.title}))` })
+      .from(cards)
+      .innerJoin(lists, eq(cards.listId, lists.id))
+      .innerJoin(boards, eq(lists.boardId, boards.id))
+      .where(
+        and(
+          eq(boards.workspaceId, workspaceId),
+          eq(boards.type, "regular"),
+          eq(boards.isArchived, false),
+          isNull(cards.deletedAt),
+          isNull(lists.deletedAt),
+          isNull(boards.deletedAt),
+        ),
+      ),
+  ]);
+
+  return {
+    labels: boardLabels,
+    members: members.map((member) => ({
+      id: member.id,
+      name: member.user?.name ?? null,
+      email: member.user?.email ?? member.email,
+    })),
+    existingNames: new Set(existing.map((row) => row.name)),
+  };
+};
+
+/**
+ * Creates the imported contacts in one transaction, appended to their lists, with
+ * their labels, assignees and a "card.created" activity each. Like cardRepo.create,
+ * but in bulk. Sends no emails or webhooks.
+ */
+export const importContacts = async (
+  db: dbClient,
+  args: {
+    workspaceId: number;
+    userId: string;
+    contacts: {
+      title: string;
+      description: string;
+      listId: number;
+      dueDate: Date | null;
+      customData: Record<string, unknown> | null;
+      labelIds: number[];
+      memberIds: number[];
+    }[];
+  },
+) => {
+  const { contacts } = args;
+  if (contacts.length === 0) return 0;
+
+  return db.transaction(async (tx) => {
+    const [counter] = await tx
+      .update(workspaces)
+      .set({ cardCounter: sql`${workspaces.cardCounter} + ${contacts.length}` })
+      .where(eq(workspaces.id, args.workspaceId))
+      .returning({ cardCounter: workspaces.cardCounter });
+    if (!counter) throw new Error(`Workspace ${args.workspaceId} not found`);
+    let cardNumber = counter.cardCounter - contacts.length;
+
+    const listIds = [...new Set(contacts.map((contact) => contact.listId))];
+    const maxIndexes = await tx
+      .select({ listId: cards.listId, maxIndex: sql<number>`max(${cards.index})` })
+      .from(cards)
+      .where(and(inArray(cards.listId, listIds), isNull(cards.deletedAt)))
+      .groupBy(cards.listId);
+    const nextIndex = new Map(listIds.map((id) => [id, 0]));
+    for (const { listId, maxIndex } of maxIndexes) {
+      nextIndex.set(listId, Number(maxIndex) + 1);
+    }
+
+    const values = contacts.map((contact) => {
+      const index = nextIndex.get(contact.listId) ?? 0;
+      nextIndex.set(contact.listId, index + 1);
+      return {
+        publicId: generateUID(),
+        title: contact.title,
+        description: contact.description,
+        createdBy: args.userId,
+        listId: contact.listId,
+        index,
+        cardNumber: ++cardNumber,
+        dueDate: contact.dueDate,
+        customData: contact.customData,
+      };
+    });
+
+    const inserted = await tx
+      .insert(cards)
+      .values(values)
+      .returning({ id: cards.id, publicId: cards.publicId });
+    const idByPublicId = new Map(inserted.map((card) => [card.publicId, card.id]));
+    const cardIds = values.map((value) => {
+      const id = idByPublicId.get(value.publicId);
+      if (id === undefined) throw new Error("Unable to create card");
+      return id;
+    });
+    const rowsFor = <T>(each: (contact: (typeof contacts)[number], cardId: number) => T[]) =>
+      contacts.flatMap((contact, i) => each(contact, cardIds[i] ?? 0));
+
+    const labelRows = rowsFor((contact, cardId) =>
+      contact.labelIds.map((labelId) => ({ cardId, labelId })),
+    );
+    if (labelRows.length) await tx.insert(cardsToLabels).values(labelRows);
+
+    const memberRows = rowsFor((contact, cardId) =>
+      contact.memberIds.map((workspaceMemberId) => ({ cardId, workspaceMemberId })),
+    );
+    if (memberRows.length) await tx.insert(cardToWorkspaceMembers).values(memberRows);
+
+    await tx.insert(cardActivities).values(
+      cardIds.map((cardId) => ({
+        publicId: generateUID(),
+        cardId,
+        type: "card.created" as const,
+        createdBy: args.userId,
+      })),
+    );
+
+    return inserted.length;
   });
 };
 

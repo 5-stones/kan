@@ -71,6 +71,38 @@ export function isCardStarred(customData: CustomData): boolean {
 
 // ─── CSV export ───────────────────────────────────────────────────────────────
 
+/** Headers of the fixed (non custom field) CSV columns, shared by export and import. */
+export function getContactCsvHeaders(config: CustomFieldsConfig) {
+  const sidebar = config.sidebar?.fields ?? {};
+  const title = (key: string, fallback: string) =>
+    (sidebar[key] as { title?: string } | undefined)?.title ?? fallback;
+  return {
+    name: config.main?.fields?.title?.title ?? "Name",
+    status: title("list", "Status"),
+    dueDate: title("dueDate", "Follow-up Date"),
+    followUpTask: "Follow-up Task",
+    members: title("members", "Assigned To"),
+    labels: title("labels", "Labels"),
+    starred: "Starred",
+    notes: config.main?.fields?.description?.title ?? "Notes",
+    created: "Created",
+    link: "Link",
+  };
+}
+
+/** Custom field columns of the export: the follow-up task already has a fixed column. */
+export function getContactCsvCustomColumns(
+  config: CustomFieldsConfig,
+): CsvCustomColumn[] {
+  return getCsvCustomColumns(config).filter(
+    (column) =>
+      !(
+        column.sectionKey === FOLLOW_UP_TASK_SECTION &&
+        column.fieldKey === FOLLOW_UP_TASK_FIELD
+      ),
+  );
+}
+
 export interface CsvCustomColumn {
   header: string;
   sectionKey: string;
@@ -194,8 +226,11 @@ export function formatCustomFieldValue(
           const parts = subFields.length
             ? subFields.map(([k, f]) => formatCustomFieldValue(f, record[k]))
             : Object.values(record).map(String);
-          return parts.filter(Boolean).join(" – ");
+          // Keep empty slots (drop only trailing ones) so the import can read entries by position
+          while (parts.length && !parts[parts.length - 1]) parts.pop();
+          return parts.join(" – ");
         })
+        .filter(Boolean)
         .join("; ");
     }
 
@@ -210,3 +245,5 @@ export function toCsv(rows: string[][]): string {
     /[",\r\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell;
   return rows.map((row) => row.map(escape).join(",")).join("\r\n") + "\r\n";
 }
+
+export * from "./coraggio-import";

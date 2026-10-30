@@ -1,16 +1,23 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
+import type { dbClient } from "@kan/db/client";
 import * as cardRepo from "@kan/db/repository/card.repo";
 import * as cardActivityRepo from "@kan/db/repository/cardActivity.repo";
 import * as coraggioRepo from "@kan/db/repository/coraggio.repo";
 import * as workspaceRepo from "@kan/db/repository/workspace.repo";
 import {
-  getCsvCustomColumns,
+  buildContactImportTemplate,
+  CSV_IMPORT_MAX_ROWS,
+  getContactCsvCustomColumns,
+  getContactCsvHeaders,
+  getContactImportGuide,
   getCsvCustomValue,
   getFollowUpTask,
+  parseCsv,
   parseCustomFieldsConfig,
   toCsv,
+  validateContactImport,
 } from "@kan/shared";
 import type { CustomFieldsConfig } from "@kan/shared";
 
@@ -18,7 +25,9 @@ import { createTRPCRouter, protectedProcedure } from "../../trpc";
 import { splitMainAndArchiveBoards } from "../../utils/coraggio/boards";
 import {
   getReminderTimeZone,
+  isValidTimeZone,
   toIsoDateInTimeZone,
+  zonedMidnightToUtc,
 } from "../../utils/coraggio/reminders";
 import { assertCanEdit, assertPermission } from "../../utils/permissions";
 
@@ -192,28 +201,22 @@ export const coraggioContactsRouter = createTRPCRouter({
       await assertPermission(ctx.db, userId, board.workspaceId, "board:view");
 
       const config = parseConfigSafe(board.customFieldsConfig);
-      const customColumns = getCsvCustomColumns(config).filter(
-        // The follow-up task already has its own fixed column
-        (column) =>
-          !(column.sectionKey === "sidebar" && column.fieldKey === "followUpTask"),
-      );
-      const sidebarTitles = config.sidebar?.fields ?? {};
-      const title = (key: string, fallback: string) =>
-        (sidebarTitles[key] as { title?: string } | undefined)?.title ?? fallback;
+      const customColumns = getContactCsvCustomColumns(config);
+      const headers = getContactCsvHeaders(config);
       const timeZone = getReminderTimeZone();
 
       const header = [
-        config.main?.fields?.title?.title ?? "Name",
-        title("list", "Status"),
-        title("dueDate", "Follow-up Date"),
-        "Follow-up Task",
-        title("members", "Assigned To"),
-        title("labels", "Labels"),
-        "Starred",
-        config.main?.fields?.description?.title ?? "Notes",
+        headers.name,
+        headers.status,
+        headers.dueDate,
+        headers.followUpTask,
+        headers.members,
+        headers.labels,
+        headers.starred,
+        headers.notes,
         ...customColumns.map((column) => column.header),
-        "Created",
-        "Link",
+        headers.created,
+        headers.link,
       ];
 
       const lists = await coraggioRepo.getBoardContactsForExport(
@@ -250,7 +253,116 @@ export const coraggioContactsRouter = createTRPCRouter({
         csv: toCsv([header, ...rows]),
       };
     }),
+
+  /** Columns of the CSV import (from the pipeline's config), with the template. */
+  importGuide: protectedProcedure
+    .input(z.object({ workspacePublicId: z.string().min(12) }))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.user?.id;
+      if (!userId) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+      const target = await getImportTarget(ctx.db, input.workspacePublicId);
+      await assertPermission(ctx.db, userId, target.workspaceId, "workspace:view");
+
+      const { labels } = await coraggioRepo.getImportContext(
+        ctx.db,
+        target.workspaceId,
+        [target.main.id],
+      );
+      const config = parseConfigSafe(target.main.customFieldsConfig);
+
+      return {
+        columns: getContactImportGuide(config, {
+          statuses: target.lists.map((list) => list.name),
+          labels: labels.map((label) => label.name),
+        }),
+        template: buildContactImportTemplate(config),
+        maxRows: CSV_IMPORT_MAX_ROWS,
+      };
+    }),
+
+  /**
+   * Creates contacts from a CSV in the export's format. All or nothing: if any
+   * row has an error, nothing is imported and every error is returned.
+   */
+  importCsv: protectedProcedure
+    .input(
+      z.object({
+        workspacePublicId: z.string().min(12),
+        csv: z.string().max(5_000_000),
+        // The importer's IANA time zone, for follow-up dates (local midnight)
+        timeZone: z.string().max(64),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user?.id;
+      if (!userId) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+      const target = await getImportTarget(ctx.db, input.workspacePublicId);
+      await assertPermission(ctx.db, userId, target.workspaceId, "card:create");
+
+      const context = await coraggioRepo.getImportContext(
+        ctx.db,
+        target.workspaceId,
+        [...new Set(target.lists.map((list) => list.boardId))],
+      );
+      const { contacts, errors, ignoredColumns } = validateContactImport(
+        parseConfigSafe(target.main.customFieldsConfig),
+        parseCsv(input.csv),
+        { ...context, lists: target.lists },
+      );
+
+      if (errors.length) {
+        return {
+          imported: 0,
+          errorCount: errors.length,
+          errors: errors.slice(0, MAX_IMPORT_ERRORS),
+          ignoredColumns,
+        };
+      }
+
+      const timeZone = isValidTimeZone(input.timeZone)
+        ? input.timeZone
+        : getReminderTimeZone();
+      const imported = await coraggioRepo.importContacts(ctx.db, {
+        workspaceId: target.workspaceId,
+        userId,
+        contacts: contacts.map(({ row: _row, dueDate, ...contact }) => ({
+          ...contact,
+          dueDate: dueDate ? zonedMidnightToUtc(dueDate, timeZone) : null,
+        })),
+      });
+
+      return { imported, errorCount: 0, errors: [], ignoredColumns };
+    }),
 });
+
+const MAX_IMPORT_ERRORS = 500;
+
+/**
+ * The diocese's pipeline (whose config defines the columns) and the statuses an
+ * import can use: the pipeline's, then the archive's.
+ */
+async function getImportTarget(db: dbClient, workspacePublicId: string) {
+  const workspace = await workspaceRepo.getByPublicId(db, workspacePublicId);
+  if (!workspace) throw new TRPCError({ code: "NOT_FOUND" });
+
+  const { main, archive } = splitMainAndArchiveBoards(
+    await coraggioRepo.getWorkspaceBoardsWithLists(db, workspace.id),
+  );
+  if (!main) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "The diocese has no pipeline board" });
+  }
+  const board = await coraggioRepo.getBoardForExport(db, main.publicId);
+
+  return {
+    workspaceId: workspace.id,
+    main: { id: main.id, customFieldsConfig: board?.customFieldsConfig ?? null },
+    lists: [main, archive].flatMap((b) =>
+      b ? b.lists.map((list) => ({ id: list.id, name: list.name, boardId: b.id })) : [],
+    ),
+  };
+}
 
 /** First customData string value containing the query, to show why a result matched. */
 function findMatchedValue(customData: unknown, query: string): string | null {

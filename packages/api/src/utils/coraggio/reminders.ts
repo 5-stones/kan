@@ -34,6 +34,54 @@ export function toIsoDateInTimeZone(now: Date, timeZone: string) {
   }).format(now);
 }
 
+/** Offset of the time zone from UTC at `date`, in milliseconds. */
+function timeZoneOffsetMs(date: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    Number(parts.find((p) => p.type === type)?.value);
+  const asUtc = Date.UTC(
+    part("year"),
+    part("month") - 1,
+    part("day"),
+    part("hour"),
+    part("minute"),
+    part("second"),
+  );
+  return asUtc - Math.floor(date.getTime() / 1000) * 1000;
+}
+
+/**
+ * The UTC instant of local midnight of a YYYY-MM-DD date in the time zone: how
+ * the browser stores due dates, so imported follow-up dates match.
+ */
+export function zonedMidnightToUtc(isoDate: string, timeZone: string) {
+  const [year = 0, month = 1, day = 1] = isoDate.split("-").map(Number);
+  const midnightUtc = Date.UTC(year, month - 1, day);
+  const offset = timeZoneOffsetMs(new Date(midnightUtc), timeZone);
+  // Re-check the offset at the result, in case a DST change falls in between
+  const result = midnightUtc - offset;
+  return new Date(midnightUtc - timeZoneOffsetMs(new Date(result), timeZone));
+}
+
+/** Whether Intl knows the IANA time zone. */
+export function isValidTimeZone(timeZone: string) {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function formatLongDate(isoDate: string) {
   const [year, month, day] = isoDate.split("-").map(Number);
   return new Intl.DateTimeFormat("en-US", {
