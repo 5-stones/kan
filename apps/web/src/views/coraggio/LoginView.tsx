@@ -86,9 +86,9 @@ export default function LoginView() {
             <div className="text-center text-lg">
               <p className="mb-3 text-2xl font-bold">{t`Check your inbox`}</p>
               <p>
-                <Trans>
-                  Click the link we sent to {magicLinkRecipient} to sign in.
-                </Trans>
+                {/* not <Trans>: fork strings aren't compiled, so production would render the placeholder */}
+                {t`Click the link we sent to`} {magicLinkRecipient}{" "}
+                {t`to sign in.`}
               </p>
             </div>
           ) : (
