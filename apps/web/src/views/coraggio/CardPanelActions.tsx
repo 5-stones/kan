@@ -10,7 +10,8 @@ type Card = NonNullable<RouterOutputs["card"]["byId"]>;
 /**
  * Top-right of the contact detail sidebar: star and close (no card menu; contacts
  * are deleted or archived from the board's right-click menu).
- * On mobile the close button stays in the page header (the sidebar is a drawer there).
+ * On phones the panel is inline and these sit in the name's row (the theme hides
+ * the page header there).
  */
 export function CardPanelActions({
   cardPublicId,
@@ -35,7 +36,7 @@ export function CardPanelActions({
         />
       )}
       {card && (
-        <div className="hidden items-center gap-1 md:flex">
+        <div className="flex items-center gap-1">
           <Link
             href={`/${isTemplate ? "templates" : "boards"}/${board?.publicId}`}
             className="card-detail-close flex h-7 w-7 items-center justify-center rounded-[5px] text-textMuted hover:bg-light-200 dark:text-textMutedDark dark:hover:bg-dark-200"

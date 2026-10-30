@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { HiOutlineMinusCircle, HiOutlinePlusCircle } from "react-icons/hi2";
 
 // phones keep their own setting and start zoomed out (more statuses on screen)
-const phoneQuery = "(max-width: 767px)";
+const phoneQuery = "(max-width: 767px), (max-height: 500px)"; // as useIsMobile
 const storageKeyFor = (phone: boolean) =>
   phone ? "coraggio:boardCompact:phone" : "coraggio:boardCompact";
 

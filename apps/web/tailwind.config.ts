@@ -44,6 +44,10 @@ export default {
         lg: "var(--theme-spacing-lg)",
         xl: "var(--theme-spacing-xl)",
       },
+      // coraggio: phones in landscape (wide but short) get the phone layout
+      screens: {
+        md: { raw: "(min-width: 768px) and (min-height: 501px)" },
+      },
     },
   },
 } satisfies Config;

@@ -30,7 +30,6 @@ import { api } from "~/utils/api";
 import { invalidateCard } from "~/utils/cardInvalidation";
 import { formatMemberDisplayName, getAvatarUrl } from "~/utils/helpers";
 import { DeleteLabelConfirmation } from "../../components/DeleteLabelConfirmation";
-import ActivityList from "./components/ActivityList";
 import { AttachmentThumbnails } from "./components/AttachmentThumbnails";
 import { AttachmentUpload } from "./components/AttachmentUpload";
 import Checklists from "./components/Checklists";
@@ -44,6 +43,7 @@ import ListSelector from "./components/ListSelector";
 import MemberSelector from "./components/MemberSelector";
 import { NewChecklistForm } from "./components/NewChecklistForm";
 import { FieldHeader } from "./components/custom-fields/FieldHeader"; // coraggio
+import { CardActivity } from "../coraggio/CardActivity"; // coraggio
 import { CardPanelActions } from "../coraggio/CardPanelActions"; // coraggio
 import { useHideNspvAdmins } from "../coraggio/useHideNspvAdmins"; // coraggio
 import { CORAGGIO_APP_NAME, isCardStarred } from "@kan/shared"; // coraggio
@@ -54,10 +54,15 @@ interface FormValues {
   description: string;
 }
 
-export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
+export function CardRightPanel({
+  isTemplate,
+  inline, // coraggio: phones show the panel inline, without the activity log
+}: {
+  isTemplate?: boolean;
+  inline?: boolean;
+}) {
   const router = useRouter();
   const { canEditCard } = usePermissions();
-  const { workspace } = useWorkspace(); // coraggio
   const hideNspvAdmins = useHideNspvAdmins(); // coraggio
   const { data: session } = authClient.useSession();
   const cardId = Array.isArray(router.query.cardId)
@@ -237,19 +242,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
         </div>
       )}
       {/* coraggio: activity log sits in the right panel, below the follow-up task */}
-      {card && cardId && (
-        <div className="card-detail-activity">
-          <h2 className="text-md pb-4 font-medium text-text dark:text-textDark">
-            {t`Activity log`}
-          </h2>
-          <ActivityList
-            cardPublicId={cardId}
-            isLoading={!card}
-            isAdmin={workspace.role === "admin"}
-            hideComments /* coraggio: no comments in the activity log */
-          />
-        </div>
-      )}
+      {card && cardId && !inline && <CardActivity cardPublicId={cardId} />}
     </div>
   );
 }
@@ -522,7 +515,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
         <div className="scrollbar-thumb-rounded-[4px] scrollbar-track-rounded-[4px] w-full flex-1 overflow-y-auto scrollbar scrollbar-track-light-200 scrollbar-thumb-light-400 hover:scrollbar-thumb-light-400 dark:scrollbar-track-dark-100 dark:scrollbar-thumb-dark-300 dark:hover:scrollbar-thumb-dark-300">
           <div className="p-auto mx-auto flex h-full w-full max-w-[800px] flex-col">
             <div className="p-6 md:p-8">
-              <div className="mb-8 md:mt-4">
+              <div className="card-detail-title mb-8 md:mt-4">
                 {!card && isLoading && (
                   <div className="flex space-x-2">
                     <div className="h-[2.3rem] w-[300px] animate-pulse rounded-[5px] bg-light-300 dark:bg-dark-300" />
@@ -557,6 +550,12 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                   </p>
                 )}
               </div>
+              {/* coraggio: on phones the right panel sits below the name */}
+              {card && (
+                <div className="card-detail-inline-panel md:hidden">
+                  <CardRightPanel isTemplate={isTemplate} inline />
+                </div>
+              )}
               {card && (
                 <>
                   {customFieldsConfigMain && (
@@ -628,7 +627,10 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                       )}
                     </>
                   )}
-                  {/* coraggio: activity lives in the right panel (CardRightPanel) */}
+                  {/* coraggio: activity lives in the right panel (CardRightPanel), at the bottom on phones */}
+                  <div className="card-detail-inline-activity mt-10 md:hidden">
+                    <CardActivity cardPublicId={cardId} />
+                  </div>
                 </>
               )}
             </div>

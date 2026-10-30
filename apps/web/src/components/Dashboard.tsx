@@ -3,9 +3,8 @@ import { t } from "@lingui/core/macro";
 import { env } from "next-runtime-env";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
+import { HiBars3, HiXMark } from "react-icons/hi2"; // coraggio
 import {
-  TbLayoutSidebarLeftCollapse,
-  TbLayoutSidebarLeftExpand,
   TbLayoutSidebarRightCollapse,
   TbLayoutSidebarRightExpand,
 } from "react-icons/tb";
@@ -19,6 +18,7 @@ import { useWorkspace, WorkspaceProvider } from "~/providers/workspace";
 import { api } from "~/utils/api";
 import { ThemeInjector } from "~/components/ThemeInjector";
 import { ChangePasswordFormConfirmation } from "~/views/settings/components/ChangePasswordConfirmation";
+import AppLogo from "~/views/coraggio/AppLogo"; // coraggio
 import { useSyncDigestTimeZone } from "~/views/coraggio/useSyncDigestTimeZone"; // coraggio
 import Button from "./Button";
 import Modal from "./modal";
@@ -28,6 +28,8 @@ interface DashboardProps {
   children: React.ReactNode;
   rightPanel?: React.ReactNode;
   hasRightPanel?: boolean;
+  // coraggio: off by default; the card page shows its panel inline on phones
+  hasMobileRightPanel?: boolean;
 }
 
 export function getDashboardLayout(
@@ -48,6 +50,7 @@ export default function Dashboard({
   children,
   rightPanel,
   hasRightPanel = false,
+  hasMobileRightPanel = false, // coraggio
 }: DashboardProps) {
   const { resolvedTheme } = useTheme();
   const { openModal, closeModal, modalContentType } = useModal();
@@ -200,26 +203,23 @@ export default function Dashboard({
       `}</style>
       <div className="dashboard relative flex h-screen flex-col bg-light-50 dark:bg-dark-50 md:bg-light-100 md:p-3 md:dark:bg-dark-100">
         {/* Mobile Header */}
-        <div className="flex h-12 items-center justify-between border-b border-light-300 bg-light-50 px-3 dark:border-dark-300 dark:bg-dark-50 md:hidden">
+        {/* coraggio: logo on the left, menu (hamburger) on the right */}
+        <div className="dashboard-mobile-header flex h-16 items-center justify-between border-b border-light-300 bg-light-50 px-3 dark:border-dark-300 dark:bg-dark-50 md:hidden">
+          <AppLogo className="dashboard-mobile-logo" />
           <button
             ref={sideNavButtonRef}
             onClick={toggleSideNav}
-            className="rounded p-1.5 transition-all hover:bg-light-200 dark:hover:bg-dark-100"
+            className="dashboard-mobile-menu-button rounded p-1.5 transition-all hover:bg-light-200 dark:hover:bg-dark-100"
+            aria-label={isSideNavOpen ? t`Close menu` : t`Open menu`}
           >
             {isSideNavOpen ? (
-              <TbLayoutSidebarLeftCollapse
-                size={20}
-                className="text-light-900 dark:text-dark-900"
-              />
+              <HiXMark size={30} className="text-light-900 dark:text-dark-900" />
             ) : (
-              <TbLayoutSidebarLeftExpand
-                size={20}
-                className="text-light-900 dark:text-dark-900"
-              />
+              <HiBars3 size={30} className="text-light-900 dark:text-dark-900" />
             )}
           </button>
 
-          {hasRightPanel && (
+          {hasMobileRightPanel && (
             <button
               ref={rightPanelButtonRef}
               onClick={toggleRightPanel}
@@ -240,10 +240,11 @@ export default function Dashboard({
           )}
         </div>
 
-        <div className="dashboard-body flex h-[calc(100dvh-4.5rem)] min-h-0 w-full md:h-[calc(100dvh-1.5rem)]">
+        {/* coraggio: taller mobile header (h-16); the menu slides in from the right, full width */}
+        <div className="dashboard-body flex h-[calc(100dvh-5.5rem)] min-h-0 w-full md:h-[calc(100dvh-1.5rem)]">
           <div
             ref={sideNavRef}
-            className={`fixed top-12 z-40 h-[calc(100dvh-3rem)] w-[calc(100vw-1.5rem)] transform transition-transform duration-300 ease-in-out md:relative md:top-0 md:h-full md:w-auto md:translate-x-0 ${isSideNavOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} `}
+            className={`fixed right-0 top-16 z-40 h-[calc(100dvh-4rem)] w-screen transform transition-transform duration-300 ease-in-out md:relative md:top-0 md:h-full md:w-auto md:translate-x-0 ${isSideNavOpen ? "translate-x-0" : "translate-x-full md:translate-x-0"} `}
           >
             <SideNavigation
               user={{
@@ -264,7 +265,7 @@ export default function Dashboard({
               <div className="h-full w-full overflow-y-auto">{children}</div>
 
               {/* Mobile Right Panel */}
-              {hasRightPanel && rightPanel && (
+              {hasMobileRightPanel && rightPanel && (
                 <div
                   ref={rightPanelRef}
                   className={`fixed right-0 top-12 z-40 h-[calc(100dvh-3rem)] w-80 transform border-l border-light-300 bg-light-200 transition-transform duration-300 ease-in-out dark:border-dark-300 dark:bg-dark-100 md:hidden ${

@@ -19,5 +19,6 @@ export function useMediaQuery(query: string): boolean {
 }
 
 export function useIsMobile(): boolean {
-  return useMediaQuery("(max-width: 767px)");
+  // coraggio: phones in landscape are short, not narrow (matches the md screen)
+  return useMediaQuery("(max-width: 767px), (max-height: 500px)");
 }
